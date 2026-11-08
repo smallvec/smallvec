@@ -3,11 +3,6 @@ use allocator_api2::{
     boxed::Box,
     vec::Vec
 };
-#[cfg(not(feature = "allocator-api2"))]
-use std::{
-    boxed::Box,
-    vec::Vec
-};
 use {
     core::{
         borrow::{

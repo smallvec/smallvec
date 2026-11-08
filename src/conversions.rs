@@ -1,9 +1,9 @@
 #[cfg(feature = "specialization")]
 use super::specialization::SpecFromSlice;
-#[cfg(feature = "arrayvec")]
-use arrayvec::ArrayVec;
 #[cfg(not(feature = "std"))]
 use alloc::borrow::ToOwned;
+#[cfg(feature = "arrayvec")]
+use arrayvec::ArrayVec;
 use {
     super::{
         SmallVec,

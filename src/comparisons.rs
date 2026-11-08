@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 #[cfg(feature = "arrayvec")]
 use arrayvec::ArrayVec;
 #[cfg(feature = "equivalent")]
@@ -7,8 +9,6 @@ use equivalent::{
 };
 #[cfg(feature = "rkyv")]
 use rkyv::vec::ArchivedVec;
-#[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
 use {
     super::{
         SmallVec,
