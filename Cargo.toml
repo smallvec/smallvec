@@ -197,6 +197,19 @@ all = "warn"
 [lints.rustdoc]
 all = "warn"
 
+[lints.cargo]
+blanket_hint_mostly_unused = "deny"
+complexity = "deny"
+correctness = "deny"
+implicit_minimum_version_req = "deny"
+nursery = "deny"
+pedantic = "deny"
+perf = "deny"
+restriction = "deny"
+style = "deny"
+suspicious = "deny"
+unknown_lints = "deny"
+
 [workspace]
 package.edition = "2024"
 package.authors = ["The Servo Project Developers"]
