@@ -64,7 +64,7 @@ where
     F: FnMut(&mut Item) -> bool,
     Item: DeFormat
 {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         dewrite!(fmt, "ExtractIf({=[?]})", self.vec.as_ref());
     }
 }

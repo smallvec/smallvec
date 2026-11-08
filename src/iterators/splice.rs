@@ -55,7 +55,7 @@ where
     I: Iterator + 'valid,
     <I as Iterator>::Item: DeFormat
 {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         dewrite!(fmt, "Splice({})", self.drain);
     }
 }

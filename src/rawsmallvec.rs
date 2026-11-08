@@ -44,7 +44,7 @@ impl<Item, const INLINE: usize> Debug for RawSmallVec<Item, INLINE> {
 
 #[cfg(feature = "defmt")]
 impl<Item, const INLINE: usize> DeFormat for RawSmallVec<Item, INLINE> {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         dewrite!(fmt, "RawSmallVec {{ .. }}");
     }
 }

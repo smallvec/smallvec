@@ -1902,7 +1902,7 @@ unsafe impl<const INLINE: usize, Heap: Allocator> BufMut for SmallVec<u8, INLINE
 
 #[cfg(feature = "defmt")]
 impl<Item: Format, const INLINE: usize, Heap: Allocator> Format for SmallVec<Item, INLINE, Heap> {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         dewrite!(fmt, "{=[?]}", self.as_ref());
     }
 }

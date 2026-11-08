@@ -46,7 +46,7 @@ impl<Item> Debug for LocatedLength<Item> {
 
 #[cfg(feature = "defmt")]
 impl<Item> DeFormat for LocatedLength<Item> {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         let (length, on_heap) = self.parts();
         dewrite!(
             fmt,

@@ -243,7 +243,7 @@ impl<Item: Debug, const INLINE: usize, Heap: Allocator> Debug for Drain<'_, Item
 impl<Item: DeFormat, const INLINE: usize, Heap: Allocator> DeFormat
     for Drain<'_, Item, INLINE, Heap>
 {
-    fn format(&self, fmt: DeFormatter) {
+    fn format(&self, fmt: DeFormatter<'_>) {
         dewrite!(fmt, "Drain({=[?]})", self.iter.as_slice());
     }
 }
