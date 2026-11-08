@@ -89,37 +89,33 @@ impl<Item, const INLINE: usize, Heap: Allocator> ExactSizeIterator
 
 impl<Item, const INLINE: usize, Heap: Allocator> FusedIterator for Drain<'_, Item, INLINE, Heap> {}
 
+struct DropGuard<'guard, 'valid, Item, const INLINE: usize, Heap: Allocator>(
+    &'guard mut Drain<'valid, Item, INLINE, Heap>
+);
+impl<Item, const INLINE: usize, Heap: Allocator> Drop for DropGuard<'_, '_, Item, INLINE, Heap> {
+    fn drop(&mut self) {
+        if self.0.tail_len > 0 {
+            unsafe {
+                let source_vec = self.0.vec.as_mut();
+                // memmove back untouched tail, update to new length
+                let start = source_vec.len();
+                let tail = self.0.tail_start;
+                if tail != start {
+                    let pointer = source_vec.as_mut_ptr();
+                    let source = pointer.add(tail);
+                    let destination = pointer.add(start);
+                    copy(source, destination, self.0.tail_len);
+                }
+                source_vec.length.add(self.0.tail_len);
+            }
+        }
+    }
+}
+
 impl<'valid, Item: 'valid, const INLINE: usize, Heap: Allocator> Drop
     for Drain<'valid, Item, INLINE, Heap>
 {
     fn drop(&mut self) {
-        /// Moves back the un-`Drain`ed elements to restore the original `Vec`.
-        struct DropGuard<'guard, 'valid, Item, const INLINE: usize, Heap: Allocator>(
-            &'guard mut Drain<'valid, Item, INLINE, Heap>
-        );
-
-        impl<Item, const INLINE: usize, Heap: Allocator> Drop
-            for DropGuard<'_, '_, Item, INLINE, Heap>
-        {
-            fn drop(&mut self) {
-                if self.0.tail_len > 0 {
-                    unsafe {
-                        let source_vec = self.0.vec.as_mut();
-                        // memmove back untouched tail, update to new length
-                        let start = source_vec.len();
-                        let tail = self.0.tail_start;
-                        if tail != start {
-                            let pointer = source_vec.as_mut_ptr();
-                            let source = pointer.add(tail);
-                            let destination = pointer.add(start);
-                            copy(source, destination, self.0.tail_len);
-                        }
-                        source_vec.length.add(self.0.tail_len);
-                    }
-                }
-            }
-        }
-
         let iter = take(&mut self.iter);
         let drop_len = iter.len();
 
@@ -174,9 +170,7 @@ impl<'valid, Item: 'valid, const INLINE: usize, Heap: Allocator> Drop
     }
 }
 
-impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]>
-    for Drain<'_, Item, INLINE, Heap>
-{
+impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]> for Drain<'_, Item, INLINE, Heap> {
     #[inline]
     fn as_ref(&self) -> &[Item] { self.iter.as_slice() }
 }
