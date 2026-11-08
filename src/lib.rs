@@ -129,9 +129,7 @@ use {
         mem::{
             ManuallyDrop,
             MaybeUninit,
-            align_of,
-            forget,
-            size_of
+            forget
         },
         ops::{
             Range,

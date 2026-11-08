@@ -22,10 +22,6 @@ use {
             Result as Format
         },
         iter::FusedIterator,
-        mem::{
-            align_of,
-            size_of
-        },
         ptr::{
             NonNull,
             slice_from_raw_parts_mut

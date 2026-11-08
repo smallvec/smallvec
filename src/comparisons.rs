@@ -7,6 +7,8 @@ use equivalent::{
 };
 #[cfg(feature = "rkyv")]
 use rkyv::vec::ArchivedVec;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 use {
     super::{
         SmallVec,
@@ -14,8 +16,7 @@ use {
     },
     alloc::{
         borrow::Cow,
-        collections::VecDeque,
-        vec::Vec
+        collections::VecDeque
     },
     core::cmp::Ordering
 };

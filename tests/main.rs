@@ -23,7 +23,6 @@ use {
             Hasher
         },
         iter::{
-            FromIterator,
             repeat_n,
             repeat_with
         },
@@ -31,7 +30,6 @@ use {
     },
     smallvec::SmallVec,
     std::{
-        borrow::ToOwned,
         hash::DefaultHasher,
         panic::{
             AssertUnwindSafe,

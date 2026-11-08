@@ -2,6 +2,8 @@
 use super::specialization::SpecFromSlice;
 #[cfg(feature = "arrayvec")]
 use arrayvec::ArrayVec;
+#[cfg(not(feature = "std"))]
+use alloc::borrow::ToOwned;
 use {
     super::{
         SmallVec,
@@ -15,10 +17,7 @@ use {
         locatedlength::LocatedLength,
         rawsmallvec::RawSmallVec
     },
-    alloc::borrow::{
-        Cow,
-        ToOwned
-    },
+    alloc::borrow::Cow,
     core::{
         mem::ManuallyDrop,
         ptr::{
