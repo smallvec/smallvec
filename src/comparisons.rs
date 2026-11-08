@@ -20,6 +20,7 @@ use {
     core::cmp::Ordering
 };
 
+#[allow(unused_macro_rules)]
 macro_rules! implementation {
     ([$($generics:tt)*] for $left:ty =? $right:ty $(where $typename:ty: $bound:ident)?) => {
         impl<
