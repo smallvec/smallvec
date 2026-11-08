@@ -1,8 +1,8 @@
 use {
     super::Allocator,
     core::{
-        ptr::NonNull,
-        mem::MaybeUninit
+        mem::MaybeUninit,
+        ptr::NonNull
     }
 };
 
