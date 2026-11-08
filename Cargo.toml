@@ -162,10 +162,10 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [lints.rust]
-unused = "deny"
+unused = { level = "deny", priority = -1 }
 deprecated = "deny"
 unreachable_code = "deny"
-nonstandard_style = "deny"
+nonstandard_style = { level = "deny", priority = -1 }
 warnings = "deny"
 missing_debug_implementations = "deny"
 dropping_copy_types = "deny"
