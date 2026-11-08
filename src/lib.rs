@@ -1296,7 +1296,9 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     #[must_use = "dropping the parts leaks the elements and the heap buffer"]
     #[cfg(all(feature = "internals", feature = "allocator-api"))]
     #[deprecated(since = "2.0.0-beta.4", note = "")]
-    pub fn into_parts_with_allocator(self) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>, Heap) {
+    pub fn into_parts_with_allocator(
+        self
+    ) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>, Heap) {
         self.into()
     }
 
