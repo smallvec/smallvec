@@ -1,7 +1,7 @@
-#[cfg(feature = "arrayvec")]
-use arrayvec::ArrayVec;
 #[cfg(feature = "specialization")]
 use super::specialization::SpecFromSlice;
+#[cfg(feature = "arrayvec")]
+use arrayvec::ArrayVec;
 use {
     super::{
         SmallVec,
@@ -15,14 +15,17 @@ use {
         locatedlength::LocatedLength,
         rawsmallvec::RawSmallVec
     },
+    alloc::borrow::{
+        Cow,
+        ToOwned
+    },
     core::{
         mem::ManuallyDrop,
         ptr::{
             NonNull,
             copy_nonoverlapping
         }
-    },
-    alloc::borrow::Cow
+    }
 };
 
 impl<Item: Clone, const INLINE: usize> From<&[Item]> for SmallVec<Item, INLINE, Global> {
