@@ -63,15 +63,15 @@ v.sort();
 - `internals`: exports through the public API `LocatedLength` and `RawSmallVec`
 - `malloc-size-of`: implements `MallocSizeOf` and `MallocShallowSizeOf`
 - `may-dangle` (nightly): allows `SmallVec` to contain references that may
- become invalid before its destructor runs
+  become invalid before its destructor runs
 - `proptest`: implements `proptest::arbitrary::Arbitrary` for `SmallVec` with
- elements implementing `Arbitrary` and `Debug`
+  elements implementing `Arbitrary` and `Debug`
 - `rayon`: implements parallel iteration
 - `rkyv`: implements `Archive` and `Serialize` for `SmallVec`, with
-deserialization support
- for the `Global` allocator
+  deserialization support
+  for the `Global` allocator
 - `schemars`: implements `schemars::JsonSchema` for `SmallVec` when elements
- implement `JsonSchema`
+  implement `JsonSchema`
 - `serde`: implements serde's serialization and deserialization
 - `specialization` (nightly): enables specialization,
   improving performance on some cases
