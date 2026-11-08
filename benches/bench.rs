@@ -80,7 +80,7 @@ macro_rules! make_benches {
             let mut g = c.benchmark_group(stringify!($group_name));
 
             $(
-                g.bench_function(stringify!($b_name), |b: &mut Bencher| {
+                g.bench_function(stringify!($b_name), |b: &mut Bencher<'_>| {
                     $gen_name::<$typ>($($args,)* b)
                 });
             )*
@@ -154,7 +154,7 @@ make_benches! {
     }
 }
 
-fn gen_push<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_push<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     #[inline(never)]
     fn push_noinline<V: Vector<u64>>(vec: &mut V, x: u64) { vec.push(black_box(x)); }
 
@@ -168,7 +168,7 @@ fn gen_push<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_insert_push<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_insert_push<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     #[inline(never)]
     fn insert_push_noinline<V: Vector<u64>>(vec: &mut V, x: u64) {
         vec.insert(black_box(x) as usize, black_box(x));
@@ -184,7 +184,7 @@ fn gen_insert_push<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_insert<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_insert<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     #[inline(never)]
     fn insert_noinline<V: Vector<u64>>(vec: &mut V, p: usize, x: u64) {
         vec.insert(black_box(p), black_box(x))
@@ -206,7 +206,7 @@ fn gen_insert<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     );
 }
 
-fn gen_remove<V: Vector<u64>>(n: usize, b: &mut Bencher) {
+fn gen_remove<V: Vector<u64>>(n: usize, b: &mut Bencher<'_>) {
     #[inline(never)]
     fn remove_noinline<V: Vector<u64>>(vec: &mut V, p: usize) -> u64 { vec.remove(black_box(p)) }
 
@@ -221,7 +221,7 @@ fn gen_remove<V: Vector<u64>>(n: usize, b: &mut Bencher) {
     );
 }
 
-fn gen_extend<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_extend<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     b.iter(|| {
         let n = black_box(n);
         let mut vec = V::new();
@@ -230,7 +230,7 @@ fn gen_extend<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_extend_filtered<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_extend_filtered<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     b.iter(|| {
         let mut vec = V::new();
         vec.extend((0..black_box(n)).filter(|i| black_box(*i) % 2 == 0));
@@ -238,7 +238,7 @@ fn gen_extend_filtered<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_from_iter<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_from_iter<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     let v: Vec<u64> = (0..black_box(n)).collect();
     b.iter(|| {
         let vec: V = black_box(&v).iter().copied().collect();
@@ -246,7 +246,7 @@ fn gen_from_iter<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     let v: Vec<u64> = (0..black_box(n)).collect();
     b.iter(|| {
         let vec = V::from_elems(black_box(&v));
@@ -254,7 +254,7 @@ fn gen_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_extend_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher) {
+fn gen_extend_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
     let v: Vec<u64> = (0..black_box(n)).collect();
     b.iter(|| {
         let mut vec = V::new();
@@ -263,7 +263,7 @@ fn gen_extend_from_slice<V: Vector<u64>>(n: u64, b: &mut Bencher) {
     });
 }
 
-fn gen_pushpop<V: Vector<u64>>(b: &mut Bencher) {
+fn gen_pushpop<V: Vector<u64>>(b: &mut Bencher<'_>) {
     #[inline(never)]
     fn pushpop_noinline<V: Vector<u64>>(vec: &mut V, x: u64) -> Option<u64> {
         vec.push(black_box(x));
@@ -279,7 +279,7 @@ fn gen_pushpop<V: Vector<u64>>(b: &mut Bencher) {
     });
 }
 
-fn gen_from_elem<V: Vector<u64>>(n: usize, b: &mut Bencher) {
+fn gen_from_elem<V: Vector<u64>>(n: usize, b: &mut Bencher<'_>) {
     b.iter(|| {
         let n = black_box(n);
         let vec = V::from_elem(black_box(42), n);
@@ -287,7 +287,7 @@ fn gen_from_elem<V: Vector<u64>>(n: usize, b: &mut Bencher) {
     });
 }
 
-fn gen_retain_mut_half<V: Vector<u64>>(n: usize, b: &mut Bencher) {
+fn gen_retain_mut_half<V: Vector<u64>>(n: usize, b: &mut Bencher<'_>) {
     b.iter_with_setup(
         || (0..black_box(n) as u64).collect::<V>(),
         |mut vec| {
@@ -297,7 +297,7 @@ fn gen_retain_mut_half<V: Vector<u64>>(n: usize, b: &mut Bencher) {
     );
 }
 
-fn gen_retain_mut_all<V: Vector<u64>>(n: usize, b: &mut Bencher) {
+fn gen_retain_mut_all<V: Vector<u64>>(n: usize, b: &mut Bencher<'_>) {
     b.iter_with_setup(
         || V::from_elem(16, black_box(n)),
         |mut vec| {
@@ -307,7 +307,7 @@ fn gen_retain_mut_all<V: Vector<u64>>(n: usize, b: &mut Bencher) {
     );
 }
 
-fn gen_retain_mut_none<V: Vector<u64>>(n: usize, b: &mut Bencher) {
+fn gen_retain_mut_none<V: Vector<u64>>(n: usize, b: &mut Bencher<'_>) {
     b.iter_with_setup(
         || V::from_elem(16, black_box(n)),
         |mut vec| {
