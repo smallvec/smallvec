@@ -11,6 +11,7 @@ use {
     }
 };
 
+#[derive(Debug)]
 pub struct Box<Item: ?Sized, Heap: Allocator>(PhantomData<(Heap, Item)>);
 
 impl<Item, Heap: Allocator> Like for Box<[Item], Heap> {

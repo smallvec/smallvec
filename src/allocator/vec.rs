@@ -20,6 +20,7 @@ use {
     }
 };
 
+#[derive(Debug)]
 pub struct Vec<Item, Heap: Allocator>(PhantomData<(Heap, Item)>);
 
 impl<Item, Heap: Allocator> Like for Vec<Item, Heap> {
