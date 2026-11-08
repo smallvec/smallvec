@@ -323,7 +323,7 @@ fn into_iter_rev() {
 fn into_iter_drop() {
     struct DropCounter<'valid>(&'valid Cell<i32>);
 
-    impl<'valid> Drop for DropCounter<'valid> {
+    impl Drop for DropCounter<'_> {
         fn drop(&mut self) { self.0.set(self.0.get() + 1); }
     }
 

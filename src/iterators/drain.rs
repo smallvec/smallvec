@@ -98,8 +98,8 @@ impl<'valid, Item: 'valid, const INLINE: usize, Heap: Allocator> Drop
             &'guard mut Drain<'valid, Item, INLINE, Heap>
         );
 
-        impl<'guard, 'valid, Item, const INLINE: usize, Heap: Allocator> Drop
-            for DropGuard<'guard, 'valid, Item, INLINE, Heap>
+        impl<Item, const INLINE: usize, Heap: Allocator> Drop
+            for DropGuard<'_, '_, Item, INLINE, Heap>
         {
             fn drop(&mut self) {
                 if self.0.tail_len > 0 {
@@ -174,8 +174,8 @@ impl<'valid, Item: 'valid, const INLINE: usize, Heap: Allocator> Drop
     }
 }
 
-impl<'valid, Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]>
-    for Drain<'valid, Item, INLINE, Heap>
+impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]>
+    for Drain<'_, Item, INLINE, Heap>
 {
     #[inline]
     fn as_ref(&self) -> &[Item] { self.iter.as_slice() }

@@ -16,9 +16,9 @@ use core::{
 pub struct Proxy<'valid, Heap: Allocator>(pub &'valid Heap);
 
 #[cfg(not(feature = "allocator-api"))]
-impl<'valid, Heap: Allocator> Requirement for Proxy<'valid, Heap> {}
+impl<Heap: Allocator> Requirement for Proxy<'_, Heap> {}
 #[cfg(all(feature = "allocator-api", not(feature = "allocator-api2")))]
-unsafe impl<'valid, Heap: Allocator> Requirement for Proxy<'valid, Heap> {
+unsafe impl<Heap: Allocator> Requirement for Proxy<'_, Heap> {
     #[inline]
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         Requirement::allocate(&self, layout)
@@ -52,7 +52,7 @@ unsafe impl<'valid, Heap: Allocator> Requirement for Proxy<'valid, Heap> {
     }
 }
 #[cfg(feature = "allocator-api2")]
-unsafe impl<'valid, Heap: Allocator> Requirement for Proxy<'valid, Heap> {
+unsafe impl<Heap: Allocator> Requirement for Proxy<'_, Heap> {
     #[inline]
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
         Requirement::allocate(&self, layout)
