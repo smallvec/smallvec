@@ -12,9 +12,7 @@ use {
 struct Tracked(Rc<Cell<usize>>);
 
 impl Drop for Tracked {
-    fn drop(&mut self) {
-        self.0.set(self.0.get() + 1);
-    }
+    fn drop(&mut self) { self.0.set(self.0.get() + 1); }
 }
 
 fn tracked<const N: usize>(count: usize, drops: &Rc<Cell<usize>>) -> ArrayVec<Tracked, N> {
