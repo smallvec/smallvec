@@ -318,9 +318,9 @@ impl<Item, const INLINE: usize> SmallVec<Item, INLINE, Global> {
     /// a SmallVec back.
     #[inline]
     #[must_use = "dropping the parts leaks the elements and the heap buffer"]
-    #[cfg_attr(feature = "internals", syntax(pub))]
+    #[cfg(feature = "internals")]
     #[deprecated(since = "2.0.0-beta.4", note = "")]
-    fn into_parts(self) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>) { self.into() }
+    pub fn into_parts(self) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>) { self.into() }
 
     /// Rebuilds a `SmallVec` from the parts returned by
     /// [`into_parts`](Self::into_parts).
@@ -1294,9 +1294,9 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[inline]
     #[must_use = "dropping the parts leaks the elements and the heap buffer"]
-    #[cfg_attr(all(feature = "internals", feature = "allocator-api"), syntax(pub))]
+    #[cfg(all(feature = "internals", feature = "allocator-api"))]
     #[deprecated(since = "2.0.0-beta.4", note = "")]
-    fn into_parts_with_allocator(self) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>, Heap) {
+    pub fn into_parts_with_allocator(self) -> (LocatedLength<Item>, RawSmallVec<Item, INLINE>, Heap) {
         self.into()
     }
 
