@@ -50,6 +50,7 @@ allocator-api2 = { version = "0.4", optional = true, features = [
   "alloc",
 ], default-features = false }
 arbitrary = { version = "1", optional = true, default-features = false }
+arrayvec = { version = "0.7", optional = true, default-features = false }
 borsh = { version = "1", optional = true, features = [
   "derive",
   "unstable__schema",
@@ -69,7 +70,7 @@ rkyv = { version = "0.8", optional = true, default-features = false, features = 
 ] }
 schemars = { version = "1", optional = true, default-features = false }
 serde_core = { version = "1", optional = true, default-features = false }
-smallvec-macro = { version = "0.0.0", path = "./macro", default-features = false }
+smallvec-macro = { version = "0.0.0", default-features = false }
 zerocopy = { version = "0.8", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
@@ -85,6 +86,10 @@ required-features = ["internals"]
 [[test]]
 name = "arbitrary"
 required-features = ["arbitrary"]
+
+[[test]]
+name = "arrayvec"
+required-features = ["arrayvec"]
 
 [[test]]
 name = "borsh"
@@ -196,7 +201,7 @@ all = "warn"
 package.edition = "2024"
 package.authors = ["The Servo Project Developers"]
 package.license = "MIT OR Apache-2.0"
-package.repository = "https://github.com/servo/rust-smallvec"
+package.repository = "https://github.com/smallvec/smallvec"
 package.homepage = "https://smallvec.rs"
 package.rust-version = "1.86"
 resolver = "3"
