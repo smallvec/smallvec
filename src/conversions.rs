@@ -12,7 +12,8 @@ use {
             boxed::Box,
             global::Global,
             like::Like,
-            vec::Vec
+            vec::Vec,
+            parts::Parts
         },
         locatedlength::LocatedLength,
         rawsmallvec::RawSmallVec
@@ -302,7 +303,7 @@ impl<Item: Clone, const INLINE: usize> From<Cow<'_, [Item]>> for SmallVec<Item, 
 impl<Item: Clone, const INLINE: usize> From<SmallVec<Item, INLINE, Global>> for Cow<'_, [Item]> {
     #[inline]
     fn from(value: SmallVec<Item, INLINE, Global>) -> Self {
-        let (pointer, length, Global) =
+        let Parts {pointer, length, allocator: Global} =
             <Vec<Item, Global> as Like>::destruct(<Vec<Item, Global> as Like>::Type::from(value));
         Cow::Owned(unsafe {
             <[Item] as ToOwned>::Owned::from_raw_parts(

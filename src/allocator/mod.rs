@@ -2,6 +2,7 @@ pub mod boxed;
 pub mod global;
 pub mod implementations;
 pub mod like;
+pub mod parts;
 pub mod proxy;
 pub mod requirement;
 pub mod vec;
