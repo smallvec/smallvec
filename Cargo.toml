@@ -162,7 +162,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [lints.rust]
-unused = "warn"
+unused = "deny"
 deprecated = "warn"
 unreachable_code = "warn"
 nonstandard_style = "warn"
