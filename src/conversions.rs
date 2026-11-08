@@ -54,21 +54,21 @@ impl<Item: Clone, const INLINE: usize> From<&[Item]> for SmallVec<Item, INLINE, 
 
 impl<Item: Clone, const INLINE: usize> From<&mut [Item]> for SmallVec<Item, INLINE, Global> {
     #[inline]
-    fn from(slice: &mut [Item]) -> Self { Self::from(slice as &[Item]) }
+    fn from(slice: &mut [Item]) -> Self { From::<&[Item]>::from(slice) }
 }
 
 impl<Item: Clone, const M: usize, const INLINE: usize> From<&[Item; M]>
     for SmallVec<Item, INLINE, Global>
 {
     #[inline]
-    fn from(slice: &[Item; M]) -> Self { Self::from(slice as &[Item]) }
+    fn from(slice: &[Item; M]) -> Self { From::<&[Item]>::from(slice) }
 }
 
 impl<Item: Clone, const M: usize, const INLINE: usize> From<&mut [Item; M]>
     for SmallVec<Item, INLINE, Global>
 {
     #[inline]
-    fn from(slice: &mut [Item; M]) -> Self { Self::from(slice as &[Item]) }
+    fn from(slice: &mut [Item; M]) -> Self { From::<&[Item]>::from(slice) }
 }
 
 impl<Item, const INLINE: usize, const M: usize> From<[Item; M]> for SmallVec<Item, INLINE, Global> {
