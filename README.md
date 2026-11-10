@@ -49,7 +49,7 @@ v.sort();
 
 ## Feature List
 
-- `allocator-api` (nightly): uses the `allocator-api` backend
+- `allocator-api`: uses the `allocator-api` backend
   for the allocator API
 - `allocator-api2`: uses the `allocator-api2` backend for the allocator API
 - `arbitrary`: implements `Arbitrary` for any `SmallVec` storing elements

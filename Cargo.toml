@@ -207,6 +207,6 @@ package.authors = ["The Servo Project Developers"]
 package.license = "MIT OR Apache-2.0"
 package.repository = "https://github.com/smallvec/smallvec"
 package.homepage = "https://smallvec.rs"
-package.rust-version = "1.86"
+package.rust-version = "1.100"
 resolver = "3"
 members = [".", "fuzz"]
