@@ -18,7 +18,7 @@ jobs:
       - run:
       - run: cargo install iai-callgrind-runner --version "$version"
         env:
-          version: | 
+          version: |
             cargo metadata --format-version=1 | jq -r '.packages[] |
             select(.name == "iai-callgrind").version'
       - run: cargo bench --bench callgrind --profile callgrind --all-features
