@@ -17,6 +17,7 @@ exclude = [
   "benches/",
   ".github/",
   "rustfmt.toml",
+  "justfile",
 ]
 
 [profile.bench]
