@@ -18,7 +18,9 @@ jobs:
       - run:
       - run: cargo install iai-callgrind-runner --version "$version"
         env:
-          version: cargo metadata --format-version=1 | jq -r '.packages[] | select(.name == "iai-callgrind").version'
+          version: | 
+            cargo metadata --format-version=1 | jq -r '.packages[] |
+            select(.name == "iai-callgrind").version'
       - run: cargo bench --bench callgrind --profile callgrind --all-features
   practices:
     runs-on: ubuntu-latest
@@ -35,8 +37,8 @@ jobs:
           git ls-files '*.md' -z | xargs -0 docker run --rm -v "$PWD:/work" \
           -w /work ghcr.io/igorshubovych/markdownlint-cli:v0.41.0
       - run: |
-          git ls-files '*.yaml' '*.yml' | xargs docker run --rm -v "$PWD:/work" \
-          -w /work cytopia/yamllint
+          git ls-files '*.yaml' '*.yml' | xargs docker run --rm -v \
+          "$PWD:/work" -w /work cytopia/yamllint
       - run: |
           git ls-files '*.toml' -z | xargs -0 docker run --rm -v "$PWD:/work" \
           -w /work tamasfe/taplo:0.10.0 fmt --check
