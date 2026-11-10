@@ -15,12 +15,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y valgrind
-      - run:
-      - run: cargo install iai-callgrind-runner --version "$version"
-        env:
-          version: |
-            cargo metadata --format-version=1 | jq -r '.packages[] |
-            select(.name == "iai-callgrind").version'
+      - run: |
+          echo "version=$(cargo metadata --format-version=1 | jq -r '.packages[] |
+            select(.name == "iai-callgrind").version')" >> "$GITHUB_OUTPUT"
+        id: metadata
+      - run: cargo install iai-callgrind-runner --version "${{ steps.metadata.outputs.version }}"
       - run: cargo bench --bench callgrind --profile callgrind --all-features
   practices:
     runs-on: ubuntu-latest
