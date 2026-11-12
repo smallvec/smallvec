@@ -28,6 +28,8 @@ impl<Item: Clone, const INLINE: usize> From<&[Item]> for SmallVec<Item, INLINE, 
     #[inline]
     fn from(slice: &[Item]) -> Self {
         if slice.len() <= Self::inline_size() {
+            // SAFETY: The precondition is checked in the initial comparison
+            // above.
             unsafe {
                 #[cfg(feature = "specialization")]
                 {
@@ -70,6 +72,7 @@ impl<Item, const INLINE: usize, const LENGTH: usize> From<[Item; LENGTH]>
     fn from(array: [Item; LENGTH]) -> Self {
         if const { LENGTH <= INLINE } {
             let mut smallvec = Self::new();
+            // SAFETY: INLINE <= smallvec.capacity()
             unsafe {
                 copy_nonoverlapping(
                     ManuallyDrop::new(array).as_ptr(),
