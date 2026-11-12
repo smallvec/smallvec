@@ -98,6 +98,8 @@ impl<Item, const INLINE: usize, const LENGTH: usize, Heap: Allocator>
         mut smallvec: SmallVec<Item, INLINE, Heap>
     ) -> Result<[Item; LENGTH], SmallVec<Item, INLINE, Heap>> {
         if smallvec.len() == LENGTH {
+            // SAFETY: we move the elements out of the smallvec, none are left
+            // in it
             unsafe {
                 smallvec.set_len(0);
             }
