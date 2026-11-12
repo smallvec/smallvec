@@ -87,7 +87,7 @@ where I: TrustedLen<Item = Item>
         };
         self.reserve(additional);
 
-        // SAFETY: Heap `TrustedLen` iterator provides accurate information
+        // SAFETY: A `TrustedLen` iterator provides accurate information
         // about its size, which was used to reserve additional memory.
         // This ensures that the access operations inside the loop always
         // operate on valid memory.
