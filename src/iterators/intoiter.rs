@@ -8,14 +8,12 @@ use {
     super::super::{
         DropDealloc,
         SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        },
         locatedlength::LocatedLength,
         rawsmallvec::RawSmallVec
     },
+    alloc::alloc::Global,
     core::{
+        alloc::Allocator,
         fmt::{
             Debug,
             Formatter,

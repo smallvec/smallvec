@@ -1,8 +1,3 @@
-#[cfg(feature = "allocator-api2")]
-use allocator_api2::{
-    boxed::Box,
-    vec::Vec
-};
 use {
     core::{
         borrow::{

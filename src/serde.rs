@@ -1,12 +1,8 @@
 use {
-    super::{
-        SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        }
-    },
+    super::SmallVec,
+    alloc::alloc::Global,
     core::{
+        alloc::Allocator,
         fmt::{
             Formatter,
             Result as Format

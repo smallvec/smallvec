@@ -5,14 +5,10 @@ use defmt::{
     write as dewrite
 };
 use {
-    super::super::{
-        SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        }
-    },
+    super::super::SmallVec,
+    alloc::alloc::Global,
     core::{
+        alloc::Allocator,
         fmt::{
             Debug,
             Formatter,

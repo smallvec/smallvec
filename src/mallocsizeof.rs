@@ -1,8 +1,6 @@
 use {
-    super::{
-        SmallVec,
-        allocator::Allocator
-    },
+    super::SmallVec,
+    core::alloc::Allocator,
     malloc_size_of::{
         MallocShallowSizeOf,
         MallocSizeOf,

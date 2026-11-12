@@ -1,8 +1,6 @@
 use {
-    super::{
-        SmallVec,
-        allocator::global::Global
-    },
+    super::SmallVec,
+    alloc::alloc::Global,
     zerocopy::{
         FromZeros,
         Immutable,

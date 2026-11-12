@@ -8,18 +8,18 @@ use {
     super::{
         super::{
             SmallVec,
-            allocator::{
-                Allocator,
-                global::Global,
-                proxy::Proxy
-            }
+            proxy::Proxy
         },
         drain::Drain
     },
-    core::fmt::{
-        Debug,
-        Formatter,
-        Result as Format
+    alloc::alloc::Global,
+    core::{
+        alloc::Allocator,
+        fmt::{
+            Debug,
+            Formatter,
+            Result as Format
+        }
     }
 };
 

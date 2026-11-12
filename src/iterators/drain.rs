@@ -7,13 +7,11 @@ use defmt::{
 use {
     super::super::{
         SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        },
         error::SmallVecError
     },
+    alloc::alloc::Global,
     core::{
+        alloc::Allocator,
         fmt::{
             Debug,
             Formatter,
