@@ -65,12 +65,12 @@ unsafe impl<Item: Sync, const INLINE: usize, Heap: Allocator + Sync> Sync
 impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]> for IntoIter<Item, INLINE, Heap> {
     #[inline]
     fn as_ref(&self) -> &[Item] {
-        let (end, on_heap) = self.end.parts();
+        let (end, spilled) = self.end.parts();
         // SAFETY: `end` tells which buffer is active, and the members in
         // `self.begin..end` are all initialized. So the pointer arithmetic is
         // valid, and so is the construction of the slice
         unsafe {
-            let pointer = self.raw.as_ptr(on_heap);
+            let pointer = self.raw.as_ptr(spilled);
             from_raw_parts(pointer.add(self.begin), end - self.begin)
         }
     }
@@ -79,10 +79,10 @@ impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]> for IntoIter<Item
 impl<Item, const INLINE: usize, Heap: Allocator> AsMut<[Item]> for IntoIter<Item, INLINE, Heap> {
     #[inline]
     fn as_mut(&mut self) -> &mut [Item] {
-        let (end, on_heap) = self.end.parts();
+        let (end, spilled) = self.end.parts();
         // SAFETY: see above
         unsafe {
-            let pointer = self.raw.as_mut_ptr(on_heap);
+            let pointer = self.raw.as_mut_ptr(spilled);
             from_raw_parts_mut(pointer.add(self.begin), end - self.begin)
         }
     }
@@ -112,13 +112,13 @@ impl<Item, const INLINE: usize, Heap: Allocator> Iterator for IntoIter<Item, INL
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let (end, on_heap) = self.end.parts();
+        let (end, spilled) = self.end.parts();
         if self.begin == end {
             None
         } else {
             // SAFETY: see above
             unsafe {
-                let pointer = self.raw.as_mut_ptr(on_heap);
+                let pointer = self.raw.as_mut_ptr(spilled);
                 let value = pointer.add(self.begin).read();
                 self.begin += 1;
                 Some(value)
@@ -138,13 +138,13 @@ impl<Item, const INLINE: usize, Heap: Allocator> DoubleEndedIterator
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        let (end, on_heap) = self.end.parts();
+        let (end, spilled) = self.end.parts();
         if self.begin == end {
             None
         } else {
             // SAFETY: see above
             unsafe {
-                let pointer = self.raw.as_mut_ptr(on_heap);
+                let pointer = self.raw.as_mut_ptr(spilled);
                 self.end.sub(1);
                 let value = pointer.add(end - 1).read();
                 Some(value)
@@ -163,10 +163,10 @@ impl<Item, const INLINE: usize, Heap: Allocator> Drop for IntoIter<Item, INLINE,
     fn drop(&mut self) {
         // SAFETY: see above
         unsafe {
-            let (end, on_heap) = self.end.parts();
+            let (end, spilled) = self.end.parts();
             let begin = self.begin;
-            let pointer = self.raw.as_mut_ptr(on_heap);
-            let _drop_dealloc = if on_heap {
+            let pointer = self.raw.as_mut_ptr(spilled);
+            let _drop_dealloc = if spilled {
                 let capacity = self.raw.heap.len();
                 Some(DropDealloc {
                     pointer: NonNull::new_unchecked(pointer as *mut u8),
