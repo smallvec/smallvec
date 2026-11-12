@@ -33,7 +33,6 @@ debug = true
 strip = false
 
 [features]
-allocator-api2 = []
 internals = ["dep:smallvec-macro"]
 malloc-size-of = ["dep:malloc_size_of"]
 may-dangle = ["dep:smallvec-macro"]
