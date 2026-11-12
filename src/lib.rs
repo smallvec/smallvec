@@ -70,6 +70,8 @@ use proptest::{
         Strategy
     }
 };
+#[cfg(any(feature = "internals", feature = "may-dangle"))]
+use smallvec_macro::syntax;
 #[cfg(feature = "specialization")]
 use specialization::{
     SpecCloneFrom,
@@ -94,8 +96,6 @@ use {
         SchemaGenerator
     }
 };
-#[cfg(any(feature = "internals", feature = "may-dangle"))]
-use smallvec_macro::syntax;
 use {
     alloc::{
         alloc::Global,
