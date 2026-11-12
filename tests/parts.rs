@@ -12,10 +12,10 @@ fn into_from_parts_spilled() {
     assert!(v.spilled());
 
     let (length, raw) = v.into();
-    assert!(length.on_heap());
+    assert!(length.is_spilled());
     assert_eq!(length.len(), 3);
 
-    // SAFETY: `length` says on heap, so `heap` is the active member.
+    // SAFETY: `length` says spilled, so `heap` is the active member.
     let pointer = unsafe { raw.heap };
     assert!(pointer.len() > 1);
 
@@ -31,7 +31,7 @@ fn into_from_parts_inline() {
     assert!(!v.spilled());
 
     let (length, raw) = v.into();
-    assert!(!length.on_heap());
+    assert!(!length.is_spilled());
     assert_eq!(length.len(), 3);
 
     // SAFETY: parts come straight from `into_parts`.
@@ -73,7 +73,7 @@ fn into_from_parts_empty() {
 
     let (length, raw) = v.into();
     assert_eq!(length.len(), 0);
-    assert!(!length.on_heap());
+    assert!(!length.is_spilled());
 
     // SAFETY: parts come straight from `into_parts`.
     let rebuilt = unsafe { SmallVec::<i32, 2>::parts(length, raw) };
@@ -85,7 +85,7 @@ fn into_from_parts_zst() {
     let v: SmallVec<(), 2> = SmallVec::from([(), (), ()]);
 
     let (length, raw) = v.into();
-    assert!(!length.on_heap());
+    assert!(!length.is_spilled());
     assert_eq!(length.len(), 3);
 
     // SAFETY: parts come straight from `into_parts`.

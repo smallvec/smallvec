@@ -77,10 +77,10 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
 
     /// # Safety
     ///
-    /// `on_heap` must be true if and only if `self.heap` is the active member.
+    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
-    pub const unsafe fn as_ptr(&self, on_heap: bool) -> *const Item {
-        if on_heap {
+    pub const unsafe fn as_ptr(&self, spilled: bool) -> *const Item {
+        if spilled {
             unsafe { self.heap.as_ptr().cast_const().cast() }
         } else {
             self.as_ptr_inline()
@@ -89,10 +89,10 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
 
     /// # Safety
     ///
-    /// `on_heap` must be true if and only if `self.heap` is the active member.
+    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
-    pub const unsafe fn as_mut_ptr(&mut self, on_heap: bool) -> *mut Item {
-        if on_heap {
+    pub const unsafe fn as_mut_ptr(&mut self, spilled: bool) -> *mut Item {
+        if spilled {
             unsafe { self.heap.as_ptr().cast() }
         } else {
             self.as_mut_ptr_inline()
@@ -101,10 +101,10 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
 
     /// # Safety
     ///
-    /// `on_heap` must be true if and only if `self.heap` is the active member.
+    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
-    pub const unsafe fn capacity(&self, on_heap: bool) -> usize {
-        if on_heap {
+    pub const unsafe fn capacity(&self, spilled: bool) -> usize {
+        if spilled {
             unsafe { self.heap.len() }
         } else if size_of::<Item>() == 0 {
             usize::MAX
@@ -125,12 +125,12 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
         new_capacity: usize,
         allocator: &Heap
     ) -> Result<(), SmallVecError> {
-        let (length, was_on_heap) = length.parts();
+        let (length, was_spilled) = length.parts();
         debug_assert!(size_of::<Item>() != 0);
         debug_assert!(new_capacity > 0 && new_capacity >= length);
 
         // SAFETY: the tag tells which member is active
-        let pointer = unsafe { self.as_mut_ptr(was_on_heap) };
+        let pointer = unsafe { self.as_mut_ptr(was_spilled) };
 
         let new_layout =
             Layout::array::<Item>(new_capacity).map_err(|_| SmallVecError::CapacityOverflow)?;
@@ -138,7 +138,7 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
             return Err(SmallVecError::CapacityOverflow);
         }
 
-        let new_ptr = if !was_on_heap {
+        let new_ptr = if !was_spilled {
             // get a fresh allocation
             // `new_layout` has nonzero size.
             let new_ptr = Allocator::allocate(allocator, new_layout)

@@ -320,11 +320,11 @@ impl<Item, const INLINE: usize> SmallVec<Item, INLINE, Global> {
     /// # Safety
     ///
     /// - `raw` is a valid `RawSmallVec`, and its active member is the one
-    ///   `length` says: `heap` if `length.on_heap()`, otherwise `inline`.
+    ///   `length` says: `heap` if `length.is_spilled()`, otherwise `inline`.
     /// - The first `length.len()` elements of the active buffer are
     ///   initialized, and `length.len()` does not exceed its capacity.
-    /// - If `length.on_heap()`, the capacity is greater than `INLINE` and the
-    ///   pointer was allocated by `Global` with
+    /// - If `length.is_spilled()`, the capacity is greater than `INLINE` and
+    ///   the pointer was allocated by `Global` with
     ///   `Layout::array::<Item>(capacity)`.
     /// - The parts are not used again afterwards.
     #[inline]
@@ -350,7 +350,7 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
-        self.length = LocatedLength::new(new_len, self.length.on_heap());
+        self.length = LocatedLength::new(new_len, self.length.is_spilled());
     }
 
     #[inline]
@@ -372,11 +372,11 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     #[inline]
     pub const fn capacity(&self) -> usize {
         // SAFETY: the tag tells which member is active
-        unsafe { self.raw.capacity(self.length.on_heap()) }
+        unsafe { self.raw.capacity(self.length.is_spilled()) }
     }
 
     #[inline]
-    pub const fn spilled(&self) -> bool { self.length.on_heap() }
+    pub const fn spilled(&self) -> bool { self.length.is_spilled() }
 
     #[track_caller]
     pub fn drain<R>(&mut self, range: R) -> Drain<'_, Item, INLINE, Heap>
@@ -623,7 +623,7 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
             return Ok(());
         }
 
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         if new_capacity <= length {
             return Ok(());
         }
@@ -643,7 +643,7 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
             result
         } else {
             // new_capacity <= Self::inline_size()
-            if on_heap {
+            if spilled {
                 unsafe {
                     // SAFETY: heap member is active
                     let pointer = self.raw.heap;
@@ -722,12 +722,12 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[inline]
     pub fn shrink_to_fit(&mut self) {
-        let (length, on_heap) = self.length.parts();
-        if !on_heap {
+        let (length, spilled) = self.length.parts();
+        if !spilled {
             return;
         }
         if length <= Self::inline_size() {
-            // SAFETY: on_heap is true, so we're on the heap
+            // SAFETY: spilled is true, so we're on the heap
             unsafe {
                 let pointer = self.raw.heap;
                 copy_nonoverlapping(
@@ -760,8 +760,8 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[inline]
     pub fn shrink_to(&mut self, min_capacity: usize) {
-        let (length, on_heap) = self.length.parts();
-        if !on_heap {
+        let (length, spilled) = self.length.parts();
+        if !spilled {
             return;
         }
         // SAFETY: the vector is on the heap
@@ -769,7 +769,7 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
         if capacity > min_capacity {
             let target = length.max(min_capacity);
             if target <= Self::inline_size() {
-                // SAFETY: on_heap is true, so we're on the heap
+                // SAFETY: spilled is true, so we're on the heap
                 unsafe {
                     let pointer = self.raw.heap;
                     copy_nonoverlapping(
@@ -954,13 +954,13 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     #[inline]
     pub const fn as_ptr(&self) -> *const Item {
         // SAFETY: the tag tells which member is active
-        unsafe { self.raw.as_ptr(self.length.on_heap()) }
+        unsafe { self.raw.as_ptr(self.length.is_spilled()) }
     }
 
     #[inline]
     pub const fn as_mut_ptr(&mut self) -> *mut Item {
         // SAFETY: see above
-        unsafe { self.raw.as_mut_ptr(self.length.on_heap()) }
+        unsafe { self.raw.as_mut_ptr(self.length.is_spilled()) }
     }
 
     #[inline]
@@ -1156,8 +1156,8 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[track_caller]
     pub fn leak<'valid>(self) -> &'valid mut [Item] {
-        let (length, on_heap) = self.length.parts();
-        if !on_heap {
+        let (length, spilled) = self.length.parts();
+        if !spilled {
             panic!(
                 "SmallVec::leak() called on inline (stack) SmallVec, which cannot be safely leaked"
             );
@@ -1174,11 +1174,11 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     /// [`set_len`](Self::set_len) method.
     #[inline]
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<Item>] {
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         unsafe {
-            let capacity = self.raw.capacity(on_heap);
+            let capacity = self.raw.capacity(spilled);
             from_raw_parts_mut(
-                self.raw.as_mut_ptr(on_heap).add(length) as *mut MaybeUninit<Item>,
+                self.raw.as_mut_ptr(spilled).add(length) as *mut MaybeUninit<Item>,
                 capacity - length
             )
         }
@@ -1436,12 +1436,12 @@ impl<#[cfg_attr(feature = "may-dangle", may_dangle)] Item, const INLINE: usize, 
     Drop for SmallVec<Item, INLINE, Heap>
 {
     fn drop(&mut self) {
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         // SAFETY: the tag tells which member is active
-        let pointer = unsafe { self.raw.as_mut_ptr(on_heap) };
+        let pointer = unsafe { self.raw.as_mut_ptr(spilled) };
         // SAFETY: see above
         unsafe {
-            let _drop_dealloc = if on_heap {
+            let _drop_dealloc = if spilled {
                 let capacity = self.raw.heap.len();
                 Some(DropDealloc {
                     pointer: NonNull::new_unchecked(pointer as *mut u8),
@@ -1852,10 +1852,10 @@ unsafe impl<const INLINE: usize, Heap: Allocator> BufMut for SmallVec<u8, INLINE
             self.reserve(64); // Grow the smallvec
         }
 
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         // SAFETY: the tag tells which member is active
-        let capacity = unsafe { self.raw.capacity(on_heap) };
-        let pointer = unsafe { self.raw.as_mut_ptr(on_heap) };
+        let capacity = unsafe { self.raw.capacity(spilled) };
+        let pointer = unsafe { self.raw.as_mut_ptr(spilled) };
         // SAFETY: Since `pointer` is valid for `capacity` bytes,
         // `pointer.add(length)` must be valid for `capacity - length` bytes.
         // The subtraction will not underflow since `length <= capacity`.
@@ -1923,7 +1923,7 @@ impl<Item: JsonSchema, const INLINE: usize, Heap: Allocator> JsonSchema
 #[cfg(feature = "bytemuck")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bytemuck")))]
 // SAFETY: the all-zero bit pattern is a valid empty, inline `SmallVec`.
-// - `LocatedLength::new(0, false)` is `0`: length 0, not on heap.
+// - `LocatedLength::new(0, false)` is `0`: length 0, not spilled.
 // - `RawSmallVec`'s inline member is `MaybeUninit`, so any bytes are valid, and
 //   the heap member is never read while inline.
 // - `Global` is a zero-sized type in all three allocator backends.

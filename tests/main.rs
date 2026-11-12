@@ -825,7 +825,7 @@ fn try_into_array() {
     assert_eq!(<[u8; 2]>::try_from(vec.clone()), Ok([0, 1]));
     assert_eq!(<[u8; 3]>::try_from(vec.clone()), Err(vec));
 
-    // Heap
+    // Spilled
     let vec = SmallVec::<u8, 2>::from_iter(0..3);
     assert_eq!(<[u8; 2]>::try_from(vec.clone()), Err(vec.clone()));
     assert_eq!(<[u8; 3]>::try_from(vec.clone()), Ok([0, 1, 2]));

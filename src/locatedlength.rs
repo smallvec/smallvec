@@ -36,10 +36,10 @@ impl<Item> Copy for LocatedLength<Item> {}
 
 impl<Item> Debug for LocatedLength<Item> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Format {
-        let (length, on_heap) = self.parts();
+        let (length, spilled) = self.parts();
         f.debug_struct("LocatedLength")
             .field("length", &length)
-            .field("on_heap", &on_heap)
+            .field("spilled", &spilled)
             .finish()
     }
 }
@@ -47,12 +47,12 @@ impl<Item> Debug for LocatedLength<Item> {
 #[cfg(feature = "defmt")]
 impl<Item> DeFormat for LocatedLength<Item> {
     fn format(&self, fmt: DeFormatter<'_>) {
-        let (length, on_heap) = self.parts();
+        let (length, spilled) = self.parts();
         dewrite!(
             fmt,
-            "LocatedLength {{ length: {=usize}, on_heap: {=bool} }}",
+            "LocatedLength {{ length: {=usize}, spilled: {=bool} }}",
             length,
-            on_heap
+            spilled
         );
     }
 }
@@ -64,11 +64,11 @@ impl<Item> LocatedLength<Item> {
     const TAG: usize = Self::SHIFT as usize;
 
     #[inline(always)]
-    pub const fn new(length: usize, on_heap: bool) -> Self {
+    pub const fn new(length: usize, spilled: bool) -> Self {
         debug_assert!(length < Self::MAX_LEN);
-        debug_assert!(!on_heap || Self::TAG != 0);
+        debug_assert!(!spilled || Self::TAG != 0);
         Self(
-            (length << Self::SHIFT) | ((on_heap as usize) & Self::TAG),
+            (length << Self::SHIFT) | ((spilled as usize) & Self::TAG),
             PhantomData
         )
     }
@@ -78,7 +78,7 @@ impl<Item> LocatedLength<Item> {
 
     #[inline(always)]
     #[must_use]
-    pub const fn on_heap(self) -> bool { self.0 & Self::TAG != 0 }
+    pub const fn is_spilled(self) -> bool { self.0 & Self::TAG != 0 }
 
     #[inline(always)]
     pub const fn parts(self) -> (usize, bool) { (self.0 >> Self::SHIFT, (self.0 & Self::TAG) != 0) }

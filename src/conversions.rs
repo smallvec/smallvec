@@ -197,8 +197,8 @@ impl<Item, const INLINE: usize> From<Vec<Item>> for SmallVec<Item, INLINE> {
 
 impl<Item, const INLINE: usize, Heap: Allocator> From<SmallVec<Item, INLINE, Heap>> for Vec<Item> {
     fn from(this: SmallVec<Item, INLINE, Heap>) -> Self {
-        let (length, on_heap) = this.length.parts();
-        if !on_heap {
+        let (length, spilled) = this.length.parts();
+        if !spilled {
             let mut vec = Vec::with_capacity(length);
             let this = ManuallyDrop::new(this);
             // SAFETY: we create a new vector with sufficient capacity, copy our

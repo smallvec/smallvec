@@ -32,18 +32,18 @@ impl<Item, const INLINE: usize, Heap: Allocator> BorrowMut<[Item]>
 impl<Item, const INLINE: usize, Heap: Allocator> AsRef<[Item]> for SmallVec<Item, INLINE, Heap> {
     #[inline]
     fn as_ref(&self) -> &[Item] {
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         // SAFETY: all the elements in `..length` are initialized
-        unsafe { from_raw_parts(self.raw.as_ptr(on_heap), length) }
+        unsafe { from_raw_parts(self.raw.as_ptr(spilled), length) }
     }
 }
 
 impl<Item, const INLINE: usize, Heap: Allocator> AsMut<[Item]> for SmallVec<Item, INLINE, Heap> {
     #[inline]
     fn as_mut(&mut self) -> &mut [Item] {
-        let (length, on_heap) = self.length.parts();
+        let (length, spilled) = self.length.parts();
         // SAFETY: see above
-        unsafe { from_raw_parts_mut(self.raw.as_mut_ptr(on_heap), length) }
+        unsafe { from_raw_parts_mut(self.raw.as_mut_ptr(spilled), length) }
     }
 }
 
