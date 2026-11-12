@@ -1,11 +1,13 @@
 #![doc = include_str!("../README.md")]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(feature = "specialization", allow(incomplete_features))]
 #![cfg_attr(feature = "specialization", feature(specialization, trusted_len))]
 #![cfg_attr(feature = "may-dangle", feature(dropck_eyepatch))]
 
 extern crate alloc;
+#[cfg(feature = "std")]
+extern crate std;
 
 #[cfg(feature = "borsh")]
 mod borsh;
@@ -30,6 +32,8 @@ mod specialization;
 #[cfg(feature = "zerocopy")]
 mod zerocopy;
 
+#[rustfmt::ignore]
+use alloc::vec;
 #[cfg(feature = "arbitrary")]
 use arbitrary::{
     Arbitrary,
@@ -81,8 +85,21 @@ use std::io::{
 };
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
+#[cfg(feature = "schemars")]
 use {
-    alloc::alloc::Global,
+    alloc::borrow::Cow,
+    schemars::{
+        JsonSchema,
+        Schema,
+        SchemaGenerator
+    }
+};
+use {
+    alloc::{
+        alloc::Global,
+        boxed::Box,
+        vec::Vec
+    },
     core::{
         alloc::{
             Allocator,
@@ -127,15 +144,6 @@ use {
     },
     newrange::NewRange,
     smallvec_macro::syntax
-};
-#[cfg(feature = "schemars")]
-use {
-    alloc::borrow::Cow,
-    schemars::{
-        JsonSchema,
-        Schema,
-        SchemaGenerator
-    }
 };
 pub use {
     error::SmallVecError,
