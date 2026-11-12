@@ -94,6 +94,8 @@ use {
         SchemaGenerator
     }
 };
+#[cfg(any(feature = "internals", feature = "may-dangle"))]
+use smallvec_macro::syntax;
 use {
     alloc::{
         alloc::Global,
@@ -142,8 +144,7 @@ use {
             from_raw_parts_mut
         }
     },
-    newrange::NewRange,
-    smallvec_macro::syntax
+    newrange::NewRange
 };
 pub use {
     error::SmallVecError,
