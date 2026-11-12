@@ -99,7 +99,6 @@ use {
 use {
     alloc::{
         alloc::Global,
-        borrow::Cow,
         boxed::Box,
         vec::Vec
     },
@@ -145,13 +144,7 @@ use {
             from_raw_parts_mut
         }
     },
-    newrange::NewRange,
-    schemars::{
-        JsonSchema,
-        Schema,
-        SchemaGenerator
-    },
-    smallvec_macro::syntax
+    newrange::NewRange
 };
 pub use {
     error::SmallVecError,
