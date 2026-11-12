@@ -2,13 +2,11 @@ use {
     super::{
         DropGuard,
         SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        },
         iterators::intoiter::IntoIter
     },
+    alloc::alloc::Global,
     core::{
+        alloc::Allocator,
         iter::TrustedLen,
         mem::forget,
         ops::Range,

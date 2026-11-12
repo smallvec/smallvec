@@ -6,12 +6,14 @@ use defmt::{
 };
 use {
     super::{
-        allocator::Allocator,
         error::SmallVecError,
         locatedlength::LocatedLength
     },
     core::{
-        alloc::Layout,
+        alloc::{
+            Allocator,
+            Layout
+        },
         fmt::{
             Debug,
             Formatter,
@@ -140,7 +142,7 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
             // get a fresh allocation
             // `new_layout` has nonzero size.
             let new_ptr = Allocator::allocate(allocator, new_layout)
-                .ok_or(SmallVecError::AllocationError(new_layout))?
+                .map_err(|_| SmallVecError::AllocationError(new_layout))?
                 .cast();
             unsafe { copy_nonoverlapping(pointer, new_ptr.as_ptr(), length) };
             new_ptr
@@ -174,7 +176,7 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
                     new_layout
                 )
             }
-            .ok_or(SmallVecError::AllocationError(new_layout))?
+            .map_err(|_| SmallVecError::AllocationError(new_layout))?
             .cast()
         };
         self.heap = NonNull::slice_from_raw_parts(new_ptr.cast(), new_capacity);

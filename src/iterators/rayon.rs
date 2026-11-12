@@ -2,11 +2,9 @@
 //! need, except it's all private
 
 use {
-    super::super::{
-        SmallVec,
-        allocator::Allocator
-    },
+    super::super::SmallVec,
     core::{
+        alloc::Allocator,
         mem::take,
         ptr::drop_in_place,
         slice::{

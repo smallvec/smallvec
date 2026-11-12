@@ -10,11 +10,9 @@ use equivalent::{
 #[cfg(feature = "rkyv")]
 use rkyv::vec::ArchivedVec;
 use {
-    super::{
-        SmallVec,
-        allocator::Allocator
-    },
+    super::SmallVec,
     alloc::{
+        alloc::Allocator,
         borrow::Cow,
         collections::VecDeque
     },

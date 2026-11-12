@@ -1,9 +1,7 @@
 use {
-    super::{
-        SmallVec,
-        allocator::Allocator
-    },
+    super::SmallVec,
     core::{
+        alloc::Allocator,
         borrow::{
             Borrow,
             BorrowMut

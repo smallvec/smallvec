@@ -49,9 +49,6 @@ v.sort();
 
 ## Feature List
 
-- `allocator-api`: uses the `allocator-api` backend
-  for the allocator API
-- `allocator-api2`: uses the `allocator-api2` backend for the allocator API
 - `arbitrary`: implements `Arbitrary` for any `SmallVec` storing elements
   that implement `Arbitrary`
 - `borsh`: implements `BorshSerialize`, `BorshDeserialize` and `BorshSchema`
@@ -82,5 +79,3 @@ v.sort();
 >
 > - SmallVec without any features enabled does not make use of the standard library.
 > - The `rayon`, `proptest` and `schemars` features implicitly require `std`.
-> - The `allocator-api2` feature requires `allocator-api`, though it does not
->   require `nightly`

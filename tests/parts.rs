@@ -1,6 +1,9 @@
 use {
     smallvec::SmallVec,
-    std::rc::Rc
+    std::{
+        alloc::Global,
+        rc::Rc
+    }
 };
 
 #[test]
@@ -88,4 +91,25 @@ fn into_from_parts_zst() {
     // SAFETY: parts come straight from `into_parts`.
     let rebuilt = unsafe { SmallVec::<(), 2>::parts(length, raw) };
     assert_eq!(rebuilt.len(), 3);
+}
+
+#[test]
+fn round_trip_with_allocator() {
+    // INLINE = 2: len 2 stays inline, len 5 spills
+    for len in [2usize, 5] {
+        let mut v: SmallVec<String, 2, Global> = SmallVec::with_capacity_in(0, Global);
+        for i in 0..len {
+            v.push(i.to_string());
+        }
+        assert_eq!(v.spilled(), len > 2);
+
+        let (length, raw, allocator) = v.into();
+        assert_eq!(length.len(), len);
+        assert_eq!(length.on_heap(), len > 2);
+
+        // SAFETY: parts come straight from `into_parts_with_allocator`.
+        let rebuilt = unsafe { SmallVec::<String, 2, Global>::parts_in(length, raw, allocator) };
+        assert_eq!(rebuilt.len(), len);
+        assert_eq!(rebuilt[0], "0");
+    }
 }

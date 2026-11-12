@@ -1,12 +1,10 @@
 use {
-    super::{
-        SmallVec,
-        allocator::{
-            Allocator,
-            global::Global
-        }
-    },
+    super::SmallVec,
     alloc::{
+        alloc::{
+            Allocator,
+            Global
+        },
         collections::BTreeMap as Map,
         format
     },

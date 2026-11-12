@@ -33,11 +33,10 @@ debug = true
 strip = false
 
 [features]
-allocator-api = ["dep:smallvec-macro"]
-allocator-api2 = ["allocator-api", "dep:allocator-api2", "dep:smallvec-macro"]
-internals = ["dep:smallvec-macro"]
+allocator-api2 = []
+internals = []
 malloc-size-of = ["dep:malloc_size_of"]
-may-dangle = ["dep:smallvec-macro"]
+may-dangle = []
 proptest = ["dep:proptest", "std"]
 rayon = ["dep:rayon", "std"]
 schemars = ["dep:schemars", "std"]
@@ -46,9 +45,6 @@ specialization = []
 std = []
 
 [dependencies]
-allocator-api2 = { version = "0.4", optional = true, features = [
-  "alloc",
-], default-features = false }
 arbitrary = { version = "1", optional = true, default-features = false }
 arrayvec = { version = "0.7", optional = true, default-features = false }
 borsh = { version = "1", optional = true, features = [
@@ -70,7 +66,7 @@ rkyv = { version = "0.8", optional = true, default-features = false, features = 
 ] }
 schemars = { version = "1", optional = true, default-features = false }
 serde_core = { version = "1", optional = true, default-features = false }
-smallvec-macro = { version = "0.0.1", optional = true, default-features = false }
+smallvec-macro = { version = "0.0.1", default-features = false }
 zerocopy = { version = "0.8", optional = true, default-features = false }
 zeroize = { version = "1", optional = true, default-features = false }
 
@@ -78,10 +74,6 @@ zeroize = { version = "1", optional = true, default-features = false }
 serde_test = "1"
 criterion = "0.8"
 iai-callgrind = "0.16"
-
-[[test]]
-name = "allocatorparts"
-required-features = ["internals"]
 
 [[test]]
 name = "arbitrary"
