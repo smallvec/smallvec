@@ -12,7 +12,9 @@ use {
     },
     alloc::{
         alloc::Global,
-        borrow::Cow
+        borrow::Cow,
+        boxed::Box,
+        vec::Vec
     },
     core::{
         alloc::Allocator,

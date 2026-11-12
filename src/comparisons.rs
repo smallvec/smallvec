@@ -14,7 +14,8 @@ use {
     alloc::{
         alloc::Allocator,
         borrow::Cow,
-        collections::VecDeque
+        collections::VecDeque,
+        vec::Vec
     },
     core::cmp::Ordering
 };
