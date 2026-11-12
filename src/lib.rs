@@ -87,7 +87,6 @@ use std::io::{
 };
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
-#[cfg(feature = "schemars")]
 use {
     alloc::borrow::Cow,
     schemars::{
@@ -144,7 +143,17 @@ use {
             from_raw_parts_mut
         }
     },
-    newrange::NewRange
+    newrange::NewRange,
+    smallvec_macro::syntax
+};
+#[cfg(feature = "schemars")]
+use {
+    alloc::borrow::Cow,
+    schemars::{
+        JsonSchema,
+        Schema,
+        SchemaGenerator
+    }
 };
 pub use {
     error::SmallVecError,
