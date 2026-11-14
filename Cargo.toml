@@ -1,12 +1,12 @@
 [package]
 name = "smallvec"
 version = "2.0.0-beta.5"
-edition.workspace = true
-rust-version.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-homepage.workspace = true
+edition = "2024"
+rust-version = "1.100"
+authors = ["The Servo Project Developers"]
+license = "MIT"
+repository = "https://github.com/smallvec/smallvec"
+homepage = "https://smallvec.rs"
 description = "'Small vector' optimization: store up to a small number of items on the stack"
 keywords = ["small", "vec", "vector", "stack", "no_std"]
 categories = ["data-structures"]
@@ -200,13 +200,3 @@ all = "deny"
 unknown_lints = "deny"
 unused_dependencies = "deny"
 non_kebab_case_features = "deny"
-
-[workspace]
-package.edition = "2024"
-package.authors = ["The Servo Project Developers"]
-package.license = "MIT"
-package.repository = "https://github.com/smallvec/smallvec"
-package.homepage = "https://smallvec.rs"
-package.rust-version = "1.100"
-resolver = "3"
-members = [".", "fuzz"]
