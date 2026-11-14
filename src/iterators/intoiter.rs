@@ -100,9 +100,6 @@ impl<Item, const INLINE: usize, Heap: Allocator> IntoIter<Item, INLINE, Heap> {
     )]
     #[inline]
     pub fn as_mut_slice(&mut self) -> &mut [Item] { self.as_mut() }
-
-    #[cfg(feature = "specialization")]
-    pub(crate) fn mark_consumed(&mut self) { self.begin = self.end.len(); }
 }
 
 impl<Item, const INLINE: usize, Heap: Allocator> Iterator for IntoIter<Item, INLINE, Heap> {

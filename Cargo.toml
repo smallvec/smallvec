@@ -33,15 +33,13 @@ debug = true
 strip = false
 
 [features]
-deref-pure = []
 internals = ["dep:smallvec-macro"]
 malloc-size-of = ["dep:malloc_size_of"]
-may-dangle = []
+nightly = ["dep:smallvec-macro"]
 proptest = ["dep:proptest", "std"]
 rayon = ["dep:rayon", "std"]
 schemars = ["dep:schemars", "std"]
 serde = ["dep:serde_core"]
-specialization = []
 std = []
 
 [dependencies]
