@@ -1,5 +1,3 @@
-#[cfg(feature = "specialization")]
-use super::specialization::SpecFromSlice;
 #[cfg(feature = "arrayvec")]
 use arrayvec::ArrayVec;
 #[cfg(feature = "tinyvec")]
@@ -37,15 +35,7 @@ impl<Item: Clone, const INLINE: usize> From<&[Item]> for SmallVec<Item, INLINE, 
             // SAFETY: The precondition is checked in the initial comparison
             // above.
             unsafe {
-                #[cfg(feature = "specialization")]
-                {
-                    <Self as SpecFromSlice<Item>>::spec_from(slice)
-                }
-
-                #[cfg(not(feature = "specialization"))]
-                {
-                    Self::from_slice_fallback(slice)
-                }
+                Self::from_slice_fallback(slice)
             }
         } else {
             Vec::from(slice).into()

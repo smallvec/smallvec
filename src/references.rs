@@ -1,3 +1,5 @@
+#[cfg(feature = "nightly")]
+use core::ops::DerefPure;
 use {
     super::SmallVec,
     core::{
@@ -59,8 +61,8 @@ impl<Item, const INLINE: usize, Heap: Allocator> DerefMut for SmallVec<Item, INL
     fn deref_mut(&mut self) -> &mut Self::Target { self.as_mut() }
 }
 
-#[cfg(feature = "deref-pure")]
-unsafe impl<Item, const INLINE: usize, Heap: Allocator> core::ops::DerefPure
+#[cfg(feature = "nightly")]
+unsafe impl<Item, const INLINE: usize, Heap: Allocator> DerefPure
     for SmallVec<Item, INLINE, Heap>
 {
 }
