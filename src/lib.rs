@@ -1412,8 +1412,8 @@ impl<Heap: Allocator> Drop for DropDealloc<'_, Heap> {
 }
 
 #[cfg_attr(feature = "nightly", syntax(unsafe))]
-impl<#[cfg_attr(feature = "nightly", may_dangle)] Item, const INLINE: usize, Heap: Allocator>
-    Drop for SmallVec<Item, INLINE, Heap>
+impl<#[cfg_attr(feature = "nightly", may_dangle)] Item, const INLINE: usize, Heap: Allocator> Drop
+    for SmallVec<Item, INLINE, Heap>
 {
     fn drop(&mut self) {
         let (length, spilled) = self.length.parts();
@@ -1638,16 +1638,12 @@ impl<Item: Clone, const INLINE: usize, Heap: Allocator + Clone> Clone
     }
 
     #[inline]
-    fn clone_from(&mut self, source: &Self) {
-        self.clone_from_fallback(source);
-    }
+    fn clone_from(&mut self, source: &Self) { self.clone_from_fallback(source); }
 }
 
 impl<Item, const INLINE: usize, Heap: Allocator> Extend<Item> for SmallVec<Item, INLINE, Heap> {
     #[inline]
-    fn extend<I: IntoIterator<Item = Item>>(&mut self, iter: I) {
-        self.extend_fallback(iter);
-    }
+    fn extend<I: IntoIterator<Item = Item>>(&mut self, iter: I) { self.extend_fallback(iter); }
 }
 
 impl<'valid, Item: Clone + 'valid, const INLINE: usize, Heap: Allocator> Extend<&'valid Item>

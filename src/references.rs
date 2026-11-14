@@ -1,5 +1,5 @@
 #[cfg(feature = "nightly")]
-use core::ops::DerefPure;
+use core::ops::DerefPure as Pure;
 use {
     super::SmallVec,
     core::{
@@ -62,7 +62,4 @@ impl<Item, const INLINE: usize, Heap: Allocator> DerefMut for SmallVec<Item, INL
 }
 
 #[cfg(feature = "nightly")]
-unsafe impl<Item, const INLINE: usize, Heap: Allocator> DerefPure
-    for SmallVec<Item, INLINE, Heap>
-{
-}
+unsafe impl<Item, const INLINE: usize, Heap: Allocator> Pure for SmallVec<Item, INLINE, Heap> {}
