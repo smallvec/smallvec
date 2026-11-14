@@ -261,12 +261,17 @@ impl<Item, const INLINE: usize> From<Vec<Item>> for SmallVec<Item, INLINE> {
     }
 }
 
-impl<Item, const INLINE: usize, Heap: Allocator> From<SmallVec<Item, INLINE, Heap>> for Vec<Item> {
+impl<Item, const INLINE: usize, Heap: Allocator> From<SmallVec<Item, INLINE, Heap>>
+    for Vec<Item, Heap>
+{
     fn from(this: SmallVec<Item, INLINE, Heap>) -> Self {
         let (length, spilled) = this.length.parts();
+        let this = ManuallyDrop::new(this);
+        // SAFETY: `this` is never used or dropped again, so moving allocator
+        // out transfers its ownership to the returned `Vec`.
+        let allocator = unsafe { (&raw const this.allocator).read() };
         if !spilled {
-            let mut vec = Vec::with_capacity(length);
-            let this = ManuallyDrop::new(this);
+            let mut vec = Vec::with_capacity_in(length, allocator);
             // SAFETY: we create a new vector with sufficient capacity, copy our
             // elements into it to transfer ownership and then set
             // the length we don't drop the elements we previously
@@ -277,27 +282,32 @@ impl<Item, const INLINE: usize, Heap: Allocator> From<SmallVec<Item, INLINE, Hea
             }
             vec
         } else {
-            let this = ManuallyDrop::new(this);
             // SAFETY:
-            // - `pointer` was created with the SmallVec's allocator
+            // - `pointer` was allocated by `Heap`, and `allocator` is the
+            //   SmallVec's own allocator, so the returned `Vec` frees the
+            //   buffer through the allocator that created it
             // - `pointer` was created with the appropriate alignment for `Item`
             // - the allocation pointed to by pointer is exactly capacity *
-            //   sizeof(Item)
+            //   sizeof(Item), the layout `Vec` will use when deallocating
             // - `length` is less than or equal to `capacity`
             // - the first `length` entries are proper `Item`-values
             // - the allocation is not larger than `isize::MAX`
+            // - `this` is a `ManuallyDrop` that is never dropped, so the buffer
+            //   has no other owner
             unsafe {
                 let pointer = this.raw.heap;
-                Vec::from_raw_parts(pointer.cast().as_ptr(), length, pointer.len())
+                Vec::from_raw_parts_in(pointer.cast().as_ptr(), length, pointer.len(), allocator)
             }
         }
     }
 }
 
 impl<Item, const INLINE: usize, Heap: Allocator> From<SmallVec<Item, INLINE, Heap>>
-    for Box<[Item]>
+    for Box<[Item], Heap>
 {
-    fn from(this: SmallVec<Item, INLINE, Heap>) -> Self { Vec::from(this).into_boxed_slice() }
+    fn from(this: SmallVec<Item, INLINE, Heap>) -> Self {
+        Vec::<Item, Heap>::from(this).into_boxed_slice()
+    }
 }
 
 impl<T, const N: usize> From<Box<[T]>> for SmallVec<T, N> {
