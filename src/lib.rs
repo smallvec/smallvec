@@ -192,8 +192,6 @@ impl<Item, const INLINE: usize> SmallVec<Item, INLINE, Global> {
         // as best as it could be. (Checked with <godbolt.org>)
         let mut buf: [MaybeUninit<Item>; INLINE] = [const { MaybeUninit::uninit() }; INLINE];
 
-        // Take ownership out of `elements` *before* duplicating its bits, so
-        // there is never a point where two owners could both drop them.
         // The elements are moved into `buf` and will be dropped by SmallVec.
         let elements = ManuallyDrop::new(elements);
 
