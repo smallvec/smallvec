@@ -196,15 +196,17 @@ impl<Item, const INLINE: usize> SmallVec<Item, INLINE, Global> {
         // there is never a point where two owners could both drop them.
         // The elements are moved into `buf` and will be dropped by SmallVec.
         let elements = ManuallyDrop::new(elements);
-        // `ManuallyDrop` is `repr(transparent)`, so this points at the first
-        // element. A cast is used because `Deref` is not usable in a const fn.
-        let source = (&raw const elements).cast::<Item>();
 
-        // SAFETY: buf and elements do not overlap, are aligned and have space
-        // for at least S elements since S <= INLINE. `elements` is wrapped in
-        // `ManuallyDrop`, so each element is dropped exactly once, by SmallVec.
+        // SAFETY: `S <= INLINE` (asserted above), so `buf` has room for one
+        // `[Item; S]`, with the same alignment as `Item`. `buf` and `elements`
+        // are distinct locals, so they do not overlap. `elements` is wrapped
+        // in `ManuallyDrop`, so the array is dropped exactly once, by SmallVec.
         unsafe {
-            copy_nonoverlapping(source, buf.as_mut_ptr().cast::<Item>(), S);
+            copy_nonoverlapping(
+                &raw const elements,
+                buf.as_mut_ptr().cast::<ManuallyDrop<[Item; S]>>(),
+                1
+            );
         }
 
         // SAFETY: all the members in 0..S are initialized
