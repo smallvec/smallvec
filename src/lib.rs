@@ -192,16 +192,20 @@ impl<Item, const INLINE: usize> SmallVec<Item, INLINE, Global> {
         // as best as it could be. (Checked with <godbolt.org>)
         let mut buf: [MaybeUninit<Item>; INLINE] = [const { MaybeUninit::uninit() }; INLINE];
 
-        // SAFETY: buf and elements do not overlap, are aligned and have space
-        // for at least S elements since S <= INLINE.
-        // We will drop the elements only once since we wrap elements
-        // in ManuallyDrop below.
-        unsafe {
-            copy_nonoverlapping(elements.as_ptr(), buf.as_mut_ptr() as *mut Item, S);
-        }
+        // Take ownership out of `elements` *before* duplicating its bits, so
+        // there is never a point where two owners could both drop them.
+        // The elements are moved into `buf` and will be dropped by SmallVec.
+        let elements = ManuallyDrop::new(elements);
+        // `ManuallyDrop` is `repr(transparent)`, so this points at the first
+        // element. A cast is used because `Deref` is not usable in a const fn.
+        let source = (&raw const elements).cast::<Item>();
 
-        // `elements` have been moved into buf and will be dropped by SmallVec
-        _ = ManuallyDrop::new(elements);
+        // SAFETY: buf and elements do not overlap, are aligned and have space
+        // for at least S elements since S <= INLINE. `elements` is wrapped in
+        // `ManuallyDrop`, so each element is dropped exactly once, by SmallVec.
+        unsafe {
+            copy_nonoverlapping(source, buf.as_mut_ptr().cast::<Item>(), S);
+        }
 
         // SAFETY: all the members in 0..S are initialized
         Self {
