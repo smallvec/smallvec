@@ -4,8 +4,8 @@
 extern crate test;
 
 use {
-    self::test::Bencher,
     smallvec::{smallvec, ExtendFromSlice, SmallVec},
+    test::Bencher,
 };
 
 const VEC_SIZE: usize = 16;
