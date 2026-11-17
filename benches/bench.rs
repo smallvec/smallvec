@@ -198,7 +198,10 @@ fn gen_insert<V: Vector<u64>>(n: u64, b: &mut Bencher<'_>) {
         },
         |mut vec| {
             let n = black_box(n);
-            for x in 0..n {
+            // The setup already pushed one element, so insert `n - 1` more and
+            // end with `n` elements, like the other benchmarks. Otherwise the
+            // `_small` variant ends with `VEC_SIZE + 1` elements and spills.
+            for x in 1..n {
                 insert_noinline(&mut vec, 0, x);
             }
             vec
