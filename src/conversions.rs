@@ -431,7 +431,7 @@ impl<Item: Clone, const INLINE: usize> From<Cow<'_, [Item]>> for SmallVec<Item, 
                         }
                     ),
                     None => Self::parts(LocatedLength::new(vector.len(), false), RawSmallVec::new())
-                }
+                };
                 ManuallyDrop::new(vector);
                 smallvec
             },
