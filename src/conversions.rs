@@ -423,7 +423,7 @@ impl<Item: Clone, const INLINE: usize> From<Cow<'_, [Item]>> for SmallVec<Item, 
     fn from(value: Cow<'_, [Item]>) -> Self {
         match value {
             Cow::Owned(mut vector) => unsafe {
-                match NonNull::new(vector.as_mut_ptr()) {
+                let smallvec = match NonNull::new(vector.as_mut_ptr()) {
                     Some(pointer) => Self::parts(
                         LocatedLength::new(vector.len(), true),
                         RawSmallVec {
@@ -432,6 +432,8 @@ impl<Item: Clone, const INLINE: usize> From<Cow<'_, [Item]>> for SmallVec<Item, 
                     ),
                     None => Self::parts(LocatedLength::new(vector.len(), false), RawSmallVec::new())
                 }
+                ManuallyDrop::new(vector);
+                smallvec
             },
             Cow::Borrowed(slice) => slice.into()
         }
