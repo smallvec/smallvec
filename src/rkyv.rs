@@ -5,9 +5,9 @@ use {
     rkyv::{
         Archive,
         Archived,
-        Deserialize as RkyvDeserialize,
+        Deserialize,
         Place,
-        Serialize as RkyvSerialize,
+        Serialize,
         rancor::Fallible,
         ser::{
             Allocator as RkyvAllocator,
@@ -24,34 +24,34 @@ impl<Item: Archive, const INLINE: usize, Heap: Allocator> Archive for SmallVec<I
     type Archived = ArchivedVec<Archived<Item>>;
     type Resolver = VecResolver;
 
+    #[inline(always)]
     fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
-        ArchivedVec::resolve_from_slice(self, resolver, out);
+        ArchivedVec::resolve_from_slice(self, resolver, out)
     }
 }
 
-impl<Item, S, const INLINE: usize, Heap: Allocator> RkyvSerialize<S>
-    for SmallVec<Item, INLINE, Heap>
-where
-    Item: RkyvSerialize<S>,
-    S: Fallible + RkyvAllocator + Writer + ?Sized
+impl<
+    Item: Serialize<Serializer>,
+    Serializer: Fallible + RkyvAllocator + Writer + ?Sized,
+    const INLINE: usize,
+    Heap: Allocator
+> Serialize<Serializer> for SmallVec<Item, INLINE, Heap>
 {
-    fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+    #[inline(always)]
+    fn serialize(&self, serializer: &mut Serializer) -> Result<Self::Resolver, Serializer::Error> {
         ArchivedVec::serialize_from_slice(self, serializer)
     }
 }
 
-impl<Item, D, const INLINE: usize> RkyvDeserialize<SmallVec<Item, INLINE, Global>, D>
-    for ArchivedVec<Archived<Item>>
-where
-    Item: Archive,
-    Archived<Item>: RkyvDeserialize<Item, D>,
-    D: Fallible + ?Sized
+impl<Item: Archive, Deserializer: Fallible + ?Sized, const INLINE: usize>
+    Deserialize<SmallVec<Item, INLINE, Global>, Deserializer> for ArchivedVec<Archived<Item>>
+where Archived<Item>: Deserialize<Item, Deserializer>
 {
     #[inline]
     fn deserialize(
         &self,
-        deserializer: &mut D
-    ) -> Result<SmallVec<Item, INLINE, Global>, D::Error> {
+        deserializer: &mut Deserializer
+    ) -> Result<SmallVec<Item, INLINE, Global>, Deserializer::Error> {
         let mut result = SmallVec::<Item, INLINE, Global>::with_capacity(self.len());
         for item in self.as_slice() {
             result.push(item.deserialize(deserializer)?);

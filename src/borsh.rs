@@ -9,9 +9,9 @@ use {
         format
     },
     borsh::{
-        BorshDeserialize,
-        BorshSchema,
-        BorshSerialize,
+        BorshDeserialize as Deserialize,
+        BorshSchema as Schema,
+        BorshSerialize as Serialize,
         io::{
             Error,
             ErrorKind,
@@ -27,7 +27,7 @@ use {
     core::iter::repeat_with
 };
 
-impl<Item: BorshSerialize, const INLINE: usize, Heap: Allocator> BorshSerialize
+impl<Item: Serialize, const INLINE: usize, Heap: Allocator> Serialize
     for SmallVec<Item, INLINE, Heap>
 {
     #[inline]
@@ -36,14 +36,11 @@ impl<Item: BorshSerialize, const INLINE: usize, Heap: Allocator> BorshSerialize
         for element in self {
             element.serialize(writer)?;
         }
-
         Ok(())
     }
 }
 
-impl<Item: BorshDeserialize, const INLINE: usize> BorshDeserialize
-    for SmallVec<Item, INLINE, Global>
-{
+impl<Item: Deserialize, const INLINE: usize> Deserialize for SmallVec<Item, INLINE, Global> {
     #[inline]
     fn deserialize_reader<R: Read>(reader: &mut R) -> Serial<Self> {
         let length = u64::deserialize_reader(reader)?;
@@ -56,26 +53,19 @@ impl<Item: BorshDeserialize, const INLINE: usize> BorshDeserialize
     }
 }
 
-impl<Item: BorshSchema, const INLINE: usize, Heap: Allocator> BorshSchema
-    for SmallVec<Item, INLINE, Heap>
-{
+impl<Item: Schema, const INLINE: usize, Heap: Allocator> Schema for SmallVec<Item, INLINE, Heap> {
     #[inline(always)]
     fn declaration() -> Declaration { format!("Vec<{}>", Item::declaration()) }
 
     #[inline]
     fn add_definitions_recursively(definitions: &mut Map<Declaration, Definition>) {
-        let declaration = Self::declaration();
-        if definitions.contains_key(&declaration) {
-            return;
-        }
-        Item::add_definitions_recursively(definitions);
-        definitions.insert(
-            declaration,
-            Definition::Sequence {
+        definitions
+            .entry(Self::declaration())
+            .or_insert_with(|| Definition::Sequence {
                 length_width: 8,
                 length_range: 0..=u64::MAX,
                 elements: Item::declaration()
-            }
-        );
+            });
+        Item::add_definitions_recursively(definitions);
     }
 }

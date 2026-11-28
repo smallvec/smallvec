@@ -30,5 +30,6 @@ SmallVec:
 * [@bolshoytoster](https://github.com/bolshoytoster)
 * [@pedrodesu](https://github.com/pedrodesu)
 * [@GauravPawar101](https://github.com/GauravPawar101)
+* [@Divyansh089](https://github.com/Divyansh089)
 
 [![SmallVec contributors](https://contrib.rocks/image?repo=smallvec/smallvec)](https://github.com/smallvec/smallvec/graphs/contributors)

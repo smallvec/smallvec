@@ -1,6 +1,6 @@
 [package]
 name = "smallvec"
-version = "2.0.0-beta.5"
+version = "2.0.0-rc.1"
 edition = "2024"
 rust-version = "1.100"
 authors = ["The Servo Project Developers"]
@@ -28,18 +28,18 @@ debug = true
 strip = false
 
 [features]
-internals = ["dep:smallvec-macro"]
+internals = []
 malloc-size-of = ["dep:malloc_size_of"]
-nightly = ["dep:smallvec-macro"]
+nightly = ["heapless/nightly"]
 proptest = ["dep:proptest", "std"]
 rayon = ["dep:rayon", "std"]
-schemars = ["dep:schemars", "std"]
 serde = ["dep:serde_core"]
 stable-deref = ["dep:stable_deref_trait"]
 std = []
 
 [dependencies]
-arbitrary = { version = "1", optional = true, default-features = false }
+add-syntax = "0.1"
+arbitrary = { version = "1", optional = true }
 arrayvec = { version = "0.7", optional = true, default-features = false }
 borsh = { version = "1", optional = true, features = [
   "derive",
@@ -47,27 +47,28 @@ borsh = { version = "1", optional = true, features = [
 ], default-features = false }
 bytemuck = { version = "1", optional = true, default-features = false }
 bytes = { version = "1", optional = true, default-features = false }
-defmt = { version = "1", optional = true, default-features = false }
-encase = { version = "0.13", optional = true, default-features = false }
-equivalent = { version = "1", optional = true, default-features = false }
-heapless = { version = "0.9", optional = true, default-features = false }
+defmt = { version = "1", optional = true }
+encase = { version = "0.13", optional = true }
+equivalent = { version = "1", optional = true }
+heapless = { version = "0.9", optional = true }
 malloc_size_of = { version = "0.1", optional = true, default-features = false }
 proptest = { version = "1", optional = true, features = [
   "std",
 ], default-features = false }
-rayon = { version = "1", optional = true, default-features = false }
+rayon = { version = "1", optional = true }
 rkyv = { version = "0.8", optional = true, default-features = false, features = [
   "alloc",
 ] }
 schemars = { version = "1", optional = true, default-features = false }
 serde_core = { version = "1", optional = true, default-features = false }
-smallvec-macro = { version = "0.0.1", optional = true, default-features = false }
-stable_deref_trait = { version = "1.2", optional = true, default-features = false }
+stable_deref_trait = { version = "1.2", optional = true, features = [
+  "alloc",
+], default-features = false }
 tinyvec = { version = "1.13", optional = true, default-features = false, features = [
   "alloc",
 ] }
-zerocopy = { version = "0.8", optional = true, default-features = false }
-zeroize = { version = "1", optional = true, default-features = false }
+zerocopy = { version = "0.8", optional = true, features = ["alloc"] }
+zeroize = { version = "1", optional = true }
 
 [dev-dependencies]
 serde_test = "1"
@@ -153,10 +154,6 @@ required-features = ["zeroize"]
 name = "callgrind"
 path = "benches/callgrind.rs"
 harness = false
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
 
 [lints.rust]
 unused = { level = "deny", priority = -1 }

@@ -475,7 +475,7 @@ fn invalid_grow() {
 }
 
 #[test]
-#[should_panic(expected = "attempted to index slice up to maximum usize")]
+#[should_panic(expected = "attempt to add with overflow")]
 fn drain_overflow() {
     let mut v: SmallVec<u8, 8> = SmallVec::from([0]);
     v.drain(..=usize::MAX);

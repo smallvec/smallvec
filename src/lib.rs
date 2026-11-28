@@ -1,7 +1,19 @@
 #![doc = include_str!("../README.md")]
 #![no_std]
-#![cfg_attr(docsrs, feature(doc_cfg))]
-#![cfg_attr(feature = "nightly", feature(deref_pure_trait, dropck_eyepatch))]
+#![cfg_attr(
+    feature = "nightly",
+    feature(
+        deref_pure_trait,
+        dropck_eyepatch,
+        const_trait_impl,
+        const_convert,
+        const_alloc_error,
+        trusted_len,
+        derive_const,
+        const_clone,
+        const_default
+    )
+)]
 
 extern crate alloc;
 #[cfg(feature = "std")]
@@ -14,10 +26,9 @@ mod conversions;
 mod error;
 mod iterators;
 mod locatedlength;
-mod macros;
 #[cfg(feature = "malloc-size-of")]
 mod mallocsizeof;
-mod newrange;
+mod range;
 mod rawsmallvec;
 mod references;
 #[cfg(feature = "rkyv")]
@@ -27,6 +38,8 @@ mod serde;
 #[cfg(feature = "zerocopy")]
 mod zerocopy;
 
+#[cfg(any(feature = "internals", feature = "nightly"))]
+use add_syntax::prepend;
 #[rustfmt::ignore]
 use alloc::vec;
 #[cfg(feature = "arbitrary")]
@@ -52,6 +65,9 @@ use defmt::{
 };
 #[cfg(feature = "encase")]
 use encase::impl_rts_array;
+pub use error::SmallVecError;
+#[cfg(feature = "internals")]
+pub use iterators::intoiter::IntoIter;
 #[cfg(feature = "proptest")]
 use proptest::{
     arbitrary::Arbitrary as Proptest,
@@ -65,8 +81,6 @@ use proptest::{
         Strategy
     }
 };
-#[cfg(any(feature = "internals", feature = "nightly"))]
-use smallvec_macro::syntax;
 #[cfg(feature = "std")]
 use std::io::{
     Result as IoResult,
@@ -130,24 +144,20 @@ use {
             from_raw_parts_mut
         }
     },
-    newrange::NewRange
+    range::range
 };
-pub use {
-    error::SmallVecError,
+#[cfg_attr(feature = "internals", prepend(pub))]
+use {
     iterators::{
         drain::Drain,
         extractif::ExtractIf,
-        intoiter::IntoIter,
         splice::Splice
-    }
-};
-#[cfg_attr(feature = "internals", syntax(pub))]
-use {
+    },
     locatedlength::LocatedLength,
     rawsmallvec::RawSmallVec
 };
 
-#[repr(C)]
+#[doc = include_str!("../docs/SmallVec.md")]
 pub struct SmallVec<Item, const INLINE: usize, Heap: Allocator = Global> {
     length: LocatedLength<Item>,
     raw: RawSmallVec<Item, INLINE>,
@@ -370,14 +380,12 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[track_caller]
     #[inline]
-    pub fn drain<R>(&mut self, range: R) -> Drain<'_, Item, INLINE, Heap>
-    where R: RangeBounds<usize> {
+    pub fn drain(&mut self, bounds: impl RangeBounds<usize>) -> Drain<'_, Item, INLINE, Heap> {
         let length = self.len();
         let Range {
             start,
             end
-        } = Range::new(range, length);
-
+        } = range(bounds, length);
         unsafe {
             // SAFETY: `start <= length`
             self.set_len(start);
@@ -482,16 +490,19 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
     /// assert_eq!(ones.len(), 3);
     /// ```
     #[inline]
-    pub fn extract_if<F, R>(&mut self, range: R, filter: F) -> ExtractIf<'_, Item, INLINE, F, Heap>
+    pub fn extract_if<Filter>(
+        &mut self,
+        bounds: impl RangeBounds<usize>,
+        filter: Filter
+    ) -> ExtractIf<'_, Item, INLINE, Filter, Heap>
     where
-        F: FnMut(&mut Item) -> bool,
-        R: RangeBounds<usize>
+        Filter: FnMut(&mut Item) -> bool
     {
-        let old_len = self.len();
+        let old_length = self.len();
         let Range {
             start,
             end
-        } = Range::new(range, old_len);
+        } = range(bounds, old_length);
 
         // Guard against us getting leaked (leak amplification)
         unsafe {
@@ -503,7 +514,7 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
             idx: start,
             end,
             del: 0,
-            old_len,
+            old_len: old_length,
             pred: filter
         }
     }
@@ -1198,12 +1209,9 @@ impl<Item, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, Heap> {
 
     #[track_caller]
     #[inline]
-    pub fn extend_from_within_copy<R>(&mut self, source: R)
-    where
-        R: RangeBounds<usize>,
-        Item: Copy
-    {
-        let source = Range::new(source, self.len());
+    pub fn extend_from_within_copy(&mut self, source: impl RangeBounds<usize>)
+    where Item: Copy {
+        let source = range(source, self.len());
         let Range {
             start,
             end
@@ -1324,16 +1332,15 @@ impl<Item: Clone, const INLINE: usize, Heap: Allocator> SmallVec<Item, INLINE, H
 
     #[track_caller]
     #[inline]
-    pub fn extend_from_within<R>(&mut self, source: R)
-    where R: RangeBounds<usize> {
-        let source = Range::new(source, self.len());
-        self.reserve(source.len());
+    pub fn extend_from_within(&mut self, bounds: impl RangeBounds<usize>) {
+        let range = range(bounds, self.len());
+        self.reserve(range.len());
 
         // SAFETY: The call to `reserve` ensures that the capacity is large
         // enough. The range is within bounds through the use of
         // `core::slice::range`.
         unsafe {
-            self.extend_from_within_fallback(source);
+            self.extend_from_within_fallback(range);
         }
     }
 }
@@ -1421,7 +1428,7 @@ impl<Heap: Allocator> Drop for DropDealloc<'_, Heap> {
     }
 }
 
-#[cfg_attr(feature = "nightly", syntax(unsafe))]
+#[cfg_attr(feature = "nightly", prepend(unsafe))]
 impl<#[cfg_attr(feature = "nightly", may_dangle)] Item, const INLINE: usize, Heap: Allocator> Drop
     for SmallVec<Item, INLINE, Heap>
 {
@@ -1722,7 +1729,6 @@ impl<Item: Zeroize, const INLINE: usize, Heap: Allocator> Zeroize for SmallVec<I
 }
 
 #[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
 impl<'valid, Item, const INLINE: usize> Arbitrary<'valid> for SmallVec<Item, INLINE, Global>
 where Item: Arbitrary<'valid>
 {
@@ -1738,7 +1744,6 @@ where Item: Arbitrary<'valid>
 }
 
 #[cfg(feature = "proptest")]
-#[cfg_attr(docsrs, doc(cfg(feature = "proptest")))]
 impl<Item, const INLINE: usize> Proptest for SmallVec<Item, INLINE, Global>
 where Item: Proptest + Debug
 {
@@ -1753,7 +1758,6 @@ where Item: Proptest + Debug
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 impl<const INLINE: usize, Heap: Allocator> Write for SmallVec<u8, INLINE, Heap> {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
@@ -1851,7 +1855,6 @@ impl_rts_array!(
 );
 
 #[cfg(feature = "schemars")]
-#[cfg_attr(docsrs, doc(cfg(feature = "schemars")))]
 impl<Item: JsonSchema, const INLINE: usize, Heap: Allocator> JsonSchema
     for SmallVec<Item, INLINE, Heap>
 {
@@ -1867,11 +1870,4 @@ impl<Item: JsonSchema, const INLINE: usize, Heap: Allocator> JsonSchema
 }
 
 #[cfg(feature = "bytemuck")]
-#[cfg_attr(docsrs, doc(cfg(feature = "bytemuck")))]
-// SAFETY: the all-zero bit pattern is a valid empty, inline `SmallVec`.
-// - `LocatedLength::new(0, false)` is `0`: length 0, not spilled.
-// - `RawSmallVec`'s inline member is `MaybeUninit`, so any bytes are valid, and
-//   the heap member is never read while inline.
-// - `Global` is a zero-sized type in all three allocator backends.
-// `Item: Zeroable` is not needed: no `Item` is read from zeroed storage.
 unsafe impl<Item, const INLINE: usize> Zeroable for SmallVec<Item, INLINE, Global> {}

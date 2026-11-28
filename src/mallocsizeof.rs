@@ -11,10 +11,10 @@ use {
 impl<Item, const INLINE: usize, Heap: Allocator> MallocShallowSizeOf
     for SmallVec<Item, INLINE, Heap>
 {
-    #[inline]
-    fn shallow_size_of(&self, ops: &mut MallocSizeOfOps) -> usize {
+    #[inline(always)]
+    fn shallow_size_of(&self, operations: &mut MallocSizeOfOps) -> usize {
         self.spilled()
-            .then(|| unsafe { ops.malloc_size_of(self.as_ptr()) })
+            .then(|| unsafe { operations.malloc_size_of(self.as_ptr()) })
             .unwrap_or_default()
     }
 }
@@ -22,7 +22,12 @@ impl<Item, const INLINE: usize, Heap: Allocator> MallocShallowSizeOf
 impl<Item: MallocSizeOf, const INLINE: usize, Heap: Allocator> MallocSizeOf
     for SmallVec<Item, INLINE, Heap>
 {
-    fn size_of(&self, ops: &mut MallocSizeOfOps) -> usize {
-        self.shallow_size_of(ops) + self.iter().map(|item| item.size_of(ops)).sum::<usize>()
+    #[inline(always)]
+    fn size_of(&self, operations: &mut MallocSizeOfOps) -> usize {
+        self.shallow_size_of(operations)
+            + self
+                .iter()
+                .map(|item| item.size_of(operations))
+                .sum::<usize>()
     }
 }

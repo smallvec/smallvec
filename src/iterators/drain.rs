@@ -28,20 +28,8 @@ use {
     }
 };
 
-/// An iterator that removes the items from a `SmallVec` and yields them by
-/// value.
-///
-/// Returned from [`SmallVec::drain`][1].
-///
-/// [1]: struct.SmallVec.html#method.drain
+#[doc = include_str!("../../docs/Drain.md")]
 pub struct Drain<'valid, Item: 'valid, const INLINE: usize, Heap: Allocator = Global> {
-    // `vec` points to a valid object within its lifetime.
-    // This is ensured by the fact that we're holding an iterator to its items.
-    //
-    // # Safety
-    //
-    // Members in vec[tail_start..tail_start + tail_len] are initialized
-    // even though vec has length < tail_start
     pub(crate) tail_start: usize,
     pub(crate) tail_len: usize,
     pub(crate) iter: Iter<'valid, Item>,

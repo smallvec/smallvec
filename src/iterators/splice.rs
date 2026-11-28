@@ -1,3 +1,5 @@
+#[cfg(feature = "nightly")]
+use core::iter::TrustedLen;
 #[cfg(feature = "defmt")]
 use defmt::{
     Format as DeFormat,
@@ -17,17 +19,21 @@ use {
             Formatter,
             Result as Format
         },
-        slice::Iter
+        iter::FusedIterator,
+        mem::take
     }
 };
 
+#[doc = include_str!("../../docs/Splice.md")]
 pub struct Splice<
     'valid,
     Iterable: Iterator + 'valid,
     const INLINE: usize,
     Heap: Allocator = Global
 > {
+    #[doc = include_str!("../../docs/Splice/drain.md")]
     pub drain: Drain<'valid, Iterable::Item, INLINE, Heap>,
+    #[doc = include_str!("../../docs/Splice/replacement.md")]
     pub replacement: Iterable
 }
 
@@ -55,13 +61,24 @@ impl<Iterable: Iterator, const INLINE: usize, Heap: Allocator> ExactSizeIterator
 {
 }
 
+impl<Iterable: Iterator, const INLINE: usize, Heap: Allocator> FusedIterator
+    for Splice<'_, Iterable, INLINE, Heap>
+{
+}
+
+#[cfg(feature = "nightly")]
+unsafe impl<Iterable: Iterator, const INLINE: usize, Heap: Allocator> TrustedLen
+    for Splice<'_, Iterable, INLINE, Heap>
+{
+}
+
 impl<Iterable: Iterator, const INLINE: usize, Heap: Allocator> Drop
     for Splice<'_, Iterable, INLINE, Heap>
 {
     #[inline]
     fn drop(&mut self) {
         self.drain.by_ref().for_each(drop);
-        self.drain.iter = Iter::default();
+        drop(take(&mut self.drain.iter));
         if self.drain.tail_len == 0 {
             unsafe { self.drain.vec.as_mut() }.extend(&mut self.replacement);
             return;

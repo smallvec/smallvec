@@ -1,3 +1,5 @@
+#[cfg(feature = "nightly")]
+use add_syntax::prepend;
 #[cfg(feature = "defmt")]
 use defmt::{
     Format as DeFormat,
@@ -30,63 +32,47 @@ use {
     }
 };
 
-#[repr(C)]
+#[doc = include_str!("../docs/RawSmallVec.md")]
 pub union RawSmallVec<Item, const INLINE: usize> {
+    #[doc = include_str!("../docs/RawSmallVec/inline.md")]
     pub inline: ManuallyDrop<[MaybeUninit<Item>; INLINE]>,
+    #[doc = include_str!("../docs/RawSmallVec/heap.md")]
     pub heap: NonNull<[MaybeUninit<Item>]>
 }
 
-// The active member is tracked by `LocatedLength`, not by the union itself, so
-// neither member can be read safely here.
-impl<Item, const INLINE: usize> Debug for RawSmallVec<Item, INLINE> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Format {
-        f.debug_struct("RawSmallVec").finish_non_exhaustive()
-    }
-}
-
-#[cfg(feature = "defmt")]
-impl<Item, const INLINE: usize> DeFormat for RawSmallVec<Item, INLINE> {
-    fn format(&self, fmt: DeFormatter<'_>) {
-        dewrite!(fmt, "RawSmallVec {{ .. }}");
-    }
-}
-
 impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
-    #[inline]
+    #[inline(always)]
+    #[doc = include_str!("../docs/RawSmallVec/new.md")]
     pub const fn new() -> Self {
         Self {
             inline: ManuallyDrop::new([const { MaybeUninit::uninit() }; INLINE])
         }
     }
 
-    #[inline]
+    #[inline(always)]
     pub const fn as_ptr_inline(&self) -> *const Item {
-        // With no inline capacity, use a dangling pointer like `Vec` does, so
-        // the address does not change when the `SmallVec` is moved.
         if INLINE == 0 {
-            return NonNull::dangling().as_ptr();
+            NonNull::dangling().as_ptr()
+        } else {
+            // SAFETY: it is safe because we aren't reading the value, just
+            // getting a reference to it. reading it would be UB potentially,
+            // but for that downstream unsafe is required
+            #[allow(unused_unsafe, reason = "Unsafe in MSRV")]
+            (unsafe { &raw const self.inline }).cast()
         }
-        // SAFETY: it is safe because we aren't reading the value, just getting
-        // a reference to it. reading it would be UB potentially, but
-        // for that downstream unsafe is required
-        #[allow(unused_unsafe, reason = "Unsafe in MSRV")]
-        (unsafe { &raw const self.inline }).cast()
     }
 
-    #[inline]
+    #[inline(always)]
     pub const fn as_mut_ptr_inline(&mut self) -> *mut Item {
-        // See `as_ptr_inline`.
         if INLINE == 0 {
-            return NonNull::dangling().as_ptr();
+            NonNull::dangling().as_ptr()
+        } else {
+            // SAFETY: see above
+            #[allow(unused_unsafe, reason = "Unsafe in MSRV")]
+            (unsafe { &raw mut self.inline }).cast()
         }
-        // SAFETY: same as above
-        #[allow(unused_unsafe, reason = "Unsafe in MSRV")]
-        (unsafe { &raw mut self.inline }).cast()
     }
 
-    /// # Safety
-    ///
-    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
     pub const unsafe fn as_ptr(&self, spilled: bool) -> *const Item {
         if spilled {
@@ -96,9 +82,6 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
         }
     }
 
-    /// # Safety
-    ///
-    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
     pub const unsafe fn as_mut_ptr(&mut self, spilled: bool) -> *mut Item {
         if spilled {
@@ -108,15 +91,13 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
         }
     }
 
-    /// # Safety
-    ///
-    /// `spilled` must be true if and only if `self.heap` is the active member.
     #[inline(always)]
+    #[doc = include_str!("../docs/RawSmallVec/capacity.md")]
     pub const unsafe fn capacity(&self, spilled: bool) -> usize {
-        if spilled {
-            unsafe { self.heap.len() }
-        } else if size_of::<Item>() == 0 {
+        if size_of::<Item>() == 0 {
             usize::MAX
+        } else if spilled {
+            unsafe { self.heap.len() }
         } else {
             INLINE
         }
@@ -192,7 +173,23 @@ impl<Item, const INLINE: usize> RawSmallVec<Item, INLINE> {
     }
 }
 
+#[cfg_attr(feature = "nightly", prepend(const))]
 impl<Item, const INLINE: usize> Default for RawSmallVec<Item, INLINE> {
     #[inline(always)]
     fn default() -> Self { Self::new() }
+}
+
+impl<Item, const INLINE: usize> Debug for RawSmallVec<Item, INLINE> {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> Format {
+        formatter
+            .debug_struct("RawSmallVec")
+            .finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl<Item, const INLINE: usize> DeFormat for RawSmallVec<Item, INLINE> {
+    fn format(&self, formatter: DeFormatter<'_>) {
+        dewrite!(formatter, "RawSmallVec {{ .. }}");
+    }
 }
